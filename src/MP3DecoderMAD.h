@@ -9,7 +9,8 @@ namespace libmad {
 
 /**
  * @brief Basic Info abmad_output_stream the Audio Data
- * 
+ * @author Phil Schatzmann
+ * @copyright GPLv3
  */
 struct MadAudioInfo {
     MadAudioInfo() = default;
@@ -32,7 +33,8 @@ struct MadAudioInfo {
 
 /**
  * @brief Individual chunk of encoded MP3 data which is submitted to the decoder
- * 
+ * @author Phil Schatzmann
+ * @copyright GPLv3
  */
 struct MadInputData {
     void* data=nullptr;
@@ -151,7 +153,7 @@ class MP3DecoderMAD  {
             is_mad_stopped = true;
         }
 
-        /// Provides the last available MP3FrameInfo
+        /// Provides the last valid audio information
         MadAudioInfo audioInfo(){
             return mad_info;
         }
