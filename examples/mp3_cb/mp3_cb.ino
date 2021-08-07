@@ -25,8 +25,8 @@ void pcmDataCallback(MadAudioInfo &info, int16_t *pwm_buffer, size_t len) {
 }
 
 // Callback to provide data
-InputData inputDataCallback(){
-    InputData data(BabyElephantWalk60_mp3, BabyElephantWalk60_mp3_len);
+MadInputData inputDataCallback(){
+    MadInputData data(BabyElephantWalk60_mp3, BabyElephantWalk60_mp3_len);
     return data;
 }
 
