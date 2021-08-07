@@ -31,21 +31,21 @@ struct MadAudioInfo {
 };
 
 /**
- * @brief Individual chunk of encoded MP3 data
+ * @brief Individual chunk of encoded MP3 data which is submitted to the decoder
  * 
  */
-struct InputData {
+struct MadInputData {
     void* data=nullptr;
     size_t size=0;
 
-    InputData() = default;
+    MadInputData() = default;
 
-    InputData(void* data, size_t len){
+    MadInputData(void* data, size_t len){
         this->data = data;
         this->size = len;    
     }
 
-    InputData(const void* data, size_t len){
+    MadInputData(const void* data, size_t len){
         this->data = (void*)data;
         this->size = len;    
     }
@@ -55,13 +55,13 @@ struct InputData {
 /// Callbacks
 typedef void (*MP3DataCallback)(MadAudioInfo &info,short *pwm_buffer, size_t len);
 typedef void (*MP3InfoCallback)(MadAudioInfo &info);
-typedef InputData (*MP3InputDataCallback)();
+typedef MadInputData (*MP3MadInputDataCallback)();
 
 /// Global Data to be used by static callback methods
-InputData mad_buffer;
+MadInputData mad_buffer;
 MP3DataCallback pwmCallback = nullptr;
 MP3InfoCallback infoCallback = nullptr;
-MP3InputDataCallback inputCallback = nullptr;
+MP3MadInputDataCallback inputCallback = nullptr;
 bool is_mad_running = false;
 bool is_mad_stopped = true;
 MadAudioInfo mad_info;
@@ -115,7 +115,7 @@ class MP3DecoderMAD  {
         }
 
         /// Defines the callback which provides input data
-        void setInputCallback(MP3InputDataCallback input){
+        void setInputCallback(MP3MadInputDataCallback input){
             inputCallback = input;
         }
 
@@ -194,7 +194,7 @@ class MP3DecoderMAD  {
             MP3DecoderMAD *mad = (MP3DecoderMAD *) data;
 
             if (inputCallback!=nullptr){
-                InputData input = inputCallback();
+                MadInputData input = inputCallback();
                 mad_stream_buffer(stream, (uint8_t*)input.data, input.size);
                 return MAD_FLOW_CONTINUE;
             }

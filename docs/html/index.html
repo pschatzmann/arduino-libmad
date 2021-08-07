@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Arduino LibMAD: A MP3 Decoder using git init</title>
+<title>Arduino LibMAD: A MP3 Decoder using libmad</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -62,11 +62,11 @@ $(function() {
 
 <div class="PageDoc"><div class="header">
   <div class="headertitle">
-<div class="title">A MP3 Decoder using git init </div>  </div>
+<div class="title">A MP3 Decoder using libmad </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="md_README"></a> MAD is a high-quality MPEG audio decoder. It currently supports MPEG-1 and the MPEG-2 extension to lower sampling frequencies, as well as the de facto MPEG 2.5 format. All three audio layers — Layer I, Layer II, and Layer III (i.e. MP3) — are fully implemented.</p>
-<p>I am providing the <a href="hhttps://www.underbit.com/products/mad/">MAD MP3 decoder from Underbit</a> as a simple Arduino Library. Libmad is based on callbacks and therefore the most efficient way to use this library outside of Arduino is by using the callback methods for providing and processing the data. In Arduino we can alternatively use Streams instead. Finally you can also use the write method to provide the mp3 data, but this involves quite some overhead.</p>
+<div class="textblock"><p><a class="anchor" id="md_README"></a> <a href="https://www.underbit.com/products/mad/">MAD from Underbit</a> is a high-quality MPEG audio decoder. It currently supports MPEG-1 and the MPEG-2 extension to lower sampling frequencies, as well as the de facto MPEG 2.5 format. All three audio layers — Layer I, Layer II, and Layer III (i.e. MP3) — are fully implemented.</p>
+<p>I am providing the <a href="hhttps://www.underbit.com/products/mad/">MAD MP3 decoder</a> as a simple Arduino Library. Libmad is based on callbacks and therefore the most efficient way to use this library outside of Arduino is by using the callback methods for providing and processing the data. In Arduino we can alternatively use Streams instead. Finally you can also use the write method to provide the mp3 data, but this involves quite some overhead.</p>
 <p>MP3 is a compressed audio file formats based on PCM. A 2.6 MB wav file can be compressed down to 476 kB MP3.</p>
 <p>This project can be used stand alone or together with the <a href="https://github.com/pschatzmann/arduino-audio-tools">arduino-audio_tools library</a>. It can also be used from non Arduino based systems with the help of cmake.</p>
 <h2><a class="anchor" id="autotoc_md1"></a>

@@ -97,18 +97,18 @@ $(function() {
 <div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;    }       </div>
 <div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;};</div>
 <div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160; </div>
-<div class="line"><a name="l00037"></a><span class="lineno"><a class="line" href="structlibmad_1_1_input_data.html">   37</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structlibmad_1_1_input_data.html">InputData</a> {</div>
+<div class="line"><a name="l00037"></a><span class="lineno"><a class="line" href="structlibmad_1_1_mad_input_data.html">   37</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structlibmad_1_1_mad_input_data.html">MadInputData</a> {</div>
 <div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;    <span class="keywordtype">void</span>* data=<span class="keyword">nullptr</span>;</div>
 <div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;    <span class="keywordtype">size_t</span> size=0;</div>
 <div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160; </div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;    <a class="code" href="structlibmad_1_1_input_data.html">InputData</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;    <a class="code" href="structlibmad_1_1_mad_input_data.html">MadInputData</a>() = <span class="keywordflow">default</span>;</div>
 <div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160; </div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;    <a class="code" href="structlibmad_1_1_input_data.html">InputData</a>(<span class="keywordtype">void</span>* data, <span class="keywordtype">size_t</span> len){</div>
+<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;    <a class="code" href="structlibmad_1_1_mad_input_data.html">MadInputData</a>(<span class="keywordtype">void</span>* data, <span class="keywordtype">size_t</span> len){</div>
 <div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;        this-&gt;data = data;</div>
 <div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;        this-&gt;size = len;    </div>
 <div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;    }</div>
 <div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160; </div>
-<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;    <a class="code" href="structlibmad_1_1_input_data.html">InputData</a>(<span class="keyword">const</span> <span class="keywordtype">void</span>* data, <span class="keywordtype">size_t</span> len){</div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;    <a class="code" href="structlibmad_1_1_mad_input_data.html">MadInputData</a>(<span class="keyword">const</span> <span class="keywordtype">void</span>* data, <span class="keywordtype">size_t</span> len){</div>
 <div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;        this-&gt;data = (<span class="keywordtype">void</span>*)data;</div>
 <div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;        this-&gt;size = len;    </div>
 <div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;    }</div>
@@ -117,12 +117,12 @@ $(function() {
 <div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160; </div>
 <div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;<span class="keyword">typedef</span> void (*MP3DataCallback)(<a class="code" href="structlibmad_1_1_mad_audio_info.html">MadAudioInfo</a> &amp;info,<span class="keywordtype">short</span> *pwm_buffer, <span class="keywordtype">size_t</span> len);</div>
 <div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;<span class="keyword">typedef</span> void (*MP3InfoCallback)(<a class="code" href="structlibmad_1_1_mad_audio_info.html">MadAudioInfo</a> &amp;info);</div>
-<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;<span class="keyword">typedef</span> <a class="code" href="structlibmad_1_1_input_data.html">InputData</a> (*MP3InputDataCallback)();</div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;<span class="keyword">typedef</span> <a class="code" href="structlibmad_1_1_mad_input_data.html">MadInputData</a> (*MP3MadInputDataCallback)();</div>
 <div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160; </div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;<a class="code" href="structlibmad_1_1_input_data.html">InputData</a> mad_buffer;</div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;<a class="code" href="structlibmad_1_1_mad_input_data.html">MadInputData</a> mad_buffer;</div>
 <div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;MP3DataCallback pwmCallback = <span class="keyword">nullptr</span>;</div>
 <div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;MP3InfoCallback infoCallback = <span class="keyword">nullptr</span>;</div>
-<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;MP3InputDataCallback inputCallback = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;MP3MadInputDataCallback inputCallback = <span class="keyword">nullptr</span>;</div>
 <div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;<span class="keywordtype">bool</span> is_mad_running = <span class="keyword">false</span>;</div>
 <div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;<span class="keywordtype">bool</span> is_mad_stopped = <span class="keyword">true</span>;</div>
 <div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;<a class="code" href="structlibmad_1_1_mad_audio_info.html">MadAudioInfo</a> mad_info;</div>
@@ -167,7 +167,7 @@ $(function() {
 <div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;            infoCallback = cb;</div>
 <div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;        }</div>
 <div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160; </div>
-<div class="line"><a name="l00118"></a><span class="lineno"><a class="line" href="classlibmad_1_1_m_p3_decoder_m_a_d.html#ab6fdc7130b89b76655b44bf21986e199">  118</a></span>&#160;        <span class="keywordtype">void</span> <a class="code" href="classlibmad_1_1_m_p3_decoder_m_a_d.html#ab6fdc7130b89b76655b44bf21986e199">setInputCallback</a>(MP3InputDataCallback input){</div>
+<div class="line"><a name="l00118"></a><span class="lineno"><a class="line" href="classlibmad_1_1_m_p3_decoder_m_a_d.html#ac86b4f6fa93f8b40c58cd1345203431c">  118</a></span>&#160;        <span class="keywordtype">void</span> <a class="code" href="classlibmad_1_1_m_p3_decoder_m_a_d.html#ac86b4f6fa93f8b40c58cd1345203431c">setInputCallback</a>(MP3MadInputDataCallback input){</div>
 <div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;            inputCallback = input;</div>
 <div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;        }</div>
 <div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160; </div>
@@ -240,7 +240,7 @@ $(function() {
 <div class="line"><a name="l00194"></a><span class="lineno">  194</span>&#160;            <a class="code" href="classlibmad_1_1_m_p3_decoder_m_a_d.html">MP3DecoderMAD</a> *mad = (<a class="code" href="classlibmad_1_1_m_p3_decoder_m_a_d.html">MP3DecoderMAD</a> *) data;</div>
 <div class="line"><a name="l00195"></a><span class="lineno">  195</span>&#160; </div>
 <div class="line"><a name="l00196"></a><span class="lineno">  196</span>&#160;            <span class="keywordflow">if</span> (inputCallback!=<span class="keyword">nullptr</span>){</div>
-<div class="line"><a name="l00197"></a><span class="lineno">  197</span>&#160;                <a class="code" href="structlibmad_1_1_input_data.html">InputData</a> input = inputCallback();</div>
+<div class="line"><a name="l00197"></a><span class="lineno">  197</span>&#160;                <a class="code" href="structlibmad_1_1_mad_input_data.html">MadInputData</a> input = inputCallback();</div>
 <div class="line"><a name="l00198"></a><span class="lineno">  198</span>&#160;                mad_stream_buffer(stream, (uint8_t*)input.data, input.size);</div>
 <div class="line"><a name="l00199"></a><span class="lineno">  199</span>&#160;                <span class="keywordflow">return</span> MAD_FLOW_CONTINUE;</div>
 <div class="line"><a name="l00200"></a><span class="lineno">  200</span>&#160;            }</div>
@@ -350,13 +350,13 @@ $(function() {
 <div class="ttc" id="aclasslibmad_1_1_m_p3_decoder_m_a_d_html_a20181dba47d710f374d5d222cd8512cd"><div class="ttname"><a href="classlibmad_1_1_m_p3_decoder_m_a_d.html#a20181dba47d710f374d5d222cd8512cd">libmad::MP3DecoderMAD::setInfoCallback</a></div><div class="ttdeci">void setInfoCallback(MP3InfoCallback cb)</div><div class="ttdoc">Defines the callback which receives the Info changes.</div><div class="ttdef"><b>Definition:</b> MP3DecoderMAD.h:113</div></div>
 <div class="ttc" id="aclasslibmad_1_1_m_p3_decoder_m_a_d_html_a2929898b5e9026e96e9ae8327cb74d36"><div class="ttname"><a href="classlibmad_1_1_m_p3_decoder_m_a_d.html#a2929898b5e9026e96e9ae8327cb74d36">libmad::MP3DecoderMAD::begin</a></div><div class="ttdeci">void begin()</div><div class="ttdoc">Starts the processing.</div><div class="ttdef"><b>Definition:</b> MP3DecoderMAD.h:123</div></div>
 <div class="ttc" id="aclasslibmad_1_1_m_p3_decoder_m_a_d_html_a3a480da4b29dcaa80f9c619d9ae9cd8d"><div class="ttname"><a href="classlibmad_1_1_m_p3_decoder_m_a_d.html#a3a480da4b29dcaa80f9c619d9ae9cd8d">libmad::MP3DecoderMAD::setDataCallback</a></div><div class="ttdeci">void setDataCallback(MP3DataCallback cb)</div><div class="ttdoc">Defines the callback which receives the decoded data.</div><div class="ttdef"><b>Definition:</b> MP3DecoderMAD.h:108</div></div>
-<div class="ttc" id="aclasslibmad_1_1_m_p3_decoder_m_a_d_html_ab6fdc7130b89b76655b44bf21986e199"><div class="ttname"><a href="classlibmad_1_1_m_p3_decoder_m_a_d.html#ab6fdc7130b89b76655b44bf21986e199">libmad::MP3DecoderMAD::setInputCallback</a></div><div class="ttdeci">void setInputCallback(MP3InputDataCallback input)</div><div class="ttdoc">Defines the callback which provides input data.</div><div class="ttdef"><b>Definition:</b> MP3DecoderMAD.h:118</div></div>
 <div class="ttc" id="aclasslibmad_1_1_m_p3_decoder_m_a_d_html_ab7bcd4167fbd16566db26576a1afed5f"><div class="ttname"><a href="classlibmad_1_1_m_p3_decoder_m_a_d.html#ab7bcd4167fbd16566db26576a1afed5f">libmad::MP3DecoderMAD::write</a></div><div class="ttdeci">size_t write(const void *data, size_t len)</div><div class="ttdoc">Makes the mp3 data available for decoding: however we recommend to provide the data via a callback or...</div><div class="ttdef"><b>Definition:</b> MP3DecoderMAD.h:160</div></div>
+<div class="ttc" id="aclasslibmad_1_1_m_p3_decoder_m_a_d_html_ac86b4f6fa93f8b40c58cd1345203431c"><div class="ttname"><a href="classlibmad_1_1_m_p3_decoder_m_a_d.html#ac86b4f6fa93f8b40c58cd1345203431c">libmad::MP3DecoderMAD::setInputCallback</a></div><div class="ttdeci">void setInputCallback(MP3MadInputDataCallback input)</div><div class="ttdoc">Defines the callback which provides input data.</div><div class="ttdef"><b>Definition:</b> MP3DecoderMAD.h:118</div></div>
 <div class="ttc" id="aclasslibmad_1_1_m_p3_decoder_m_a_d_html_acc1c4cc13b8ea61c78f4a7625920140a"><div class="ttname"><a href="classlibmad_1_1_m_p3_decoder_m_a_d.html#acc1c4cc13b8ea61c78f4a7625920140a">libmad::MP3DecoderMAD::end</a></div><div class="ttdeci">void end()</div><div class="ttdoc">Releases the reserved memory.</div><div class="ttdef"><b>Definition:</b> MP3DecoderMAD.h:147</div></div>
 <div class="ttc" id="amad__config_8h_html"><div class="ttname"><a href="mad__config_8h.html">mad_config.h</a></div><div class="ttdoc">Detemrine the processor to define the correct FPM implementation.</div></div>
 <div class="ttc" id="amad__log_8h_html"><div class="ttname"><a href="mad__log_8h.html">mad_log.h</a></div><div class="ttdoc">Simple Logging.</div></div>
-<div class="ttc" id="astructlibmad_1_1_input_data_html"><div class="ttname"><a href="structlibmad_1_1_input_data.html">libmad::InputData</a></div><div class="ttdoc">Individual chunk of encoded MP3 data.</div><div class="ttdef"><b>Definition:</b> MP3DecoderMAD.h:37</div></div>
 <div class="ttc" id="astructlibmad_1_1_mad_audio_info_html"><div class="ttname"><a href="structlibmad_1_1_mad_audio_info.html">libmad::MadAudioInfo</a></div><div class="ttdoc">Basic Info abmad_output_stream the Audio Data.</div><div class="ttdef"><b>Definition:</b> MP3DecoderMAD.h:14</div></div>
+<div class="ttc" id="astructlibmad_1_1_mad_input_data_html"><div class="ttname"><a href="structlibmad_1_1_mad_input_data.html">libmad::MadInputData</a></div><div class="ttdoc">Individual chunk of encoded MP3 data which is submitted to the decoder.</div><div class="ttdef"><b>Definition:</b> MP3DecoderMAD.h:37</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
