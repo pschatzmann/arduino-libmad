@@ -93,7 +93,7 @@ class MP3DecoderMAD  {
 
 #ifdef ARDUINO
         MP3DecoderMAD(Print &mad_output_streamput, MP3InfoCallback infoCB = nullptr){
-            setmad_output_streamput(mad_output_streamput);
+            setOutput(mad_output_streamput);
             setInfoCallback(infoCB);
         }
 
@@ -276,7 +276,7 @@ class MP3DecoderMAD  {
 #ifdef ARDUINO
             // return result via stream
             if (mad_output_stream!=nullptr){
-                mad_output_stream->write((uint8_t)result, nchannels*nsamples*sizeof(int16_t));
+                mad_output_stream->write((uint8_t*)result, nchannels*nsamples*sizeof(int16_t));
             }
 #endif
             return MAD_FLOW_CONTINUE;
