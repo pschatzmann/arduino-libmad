@@ -184,7 +184,10 @@ class MP3DecoderMAD  {
 
     protected:
         struct mad_decoder decoder;
-
+#ifdef ARDUINO
+        Stream *mad_input_stream = nullptr;
+        Print *mad_output_stream = nullptr;
+#endif
         /*
         * This is the input callback. The purpose of this callback is to (re)fill
         * the stream buffer which is to be decoded. We try to refill it 1) from the 
