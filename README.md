@@ -74,7 +74,7 @@ make
 
 ### Documentation
 
-The [class documentation can be found here](https://pschatzmann.github.io/arduino-libmad/html/annotated.html)
+The [Class Documentation can be found here](https://pschatzmann.github.io/arduino-libmad/html/annotated.html)
 
 
 

@@ -97,7 +97,7 @@ class MP3DecoderMAD  {
             setInfoCallback(infoCB);
         }
 
-        void setmad_output_streamput(Print &mad_output_streamput){
+        void setOutput(Print &mad_output_streamput){
             this->mad_output_stream = &mad_output_streamput;
         }
 
