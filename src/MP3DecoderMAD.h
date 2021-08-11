@@ -12,6 +12,9 @@ namespace libmad {
  * @author Phil Schatzmann
  * @copyright GPLv3
  */
+
+#define MAD_READ_DATA_MAX_SIZE 1024
+
 struct MadAudioInfo {
     MadAudioInfo() = default;
     MadAudioInfo(const MadAudioInfo&) = default;
@@ -37,18 +40,19 @@ struct MadAudioInfo {
  * @copyright GPLv3
  */
 struct MadInputData {
-    void* data=nullptr;
+    uint8_t* data=nullptr;
     size_t size=0;
+    bool cleanup = false;
 
     MadInputData() = default;
 
     MadInputData(void* data, size_t len){
-        this->data = data;
+        this->data = (uint8_t*) data;
         this->size = len;    
     }
 
     MadInputData(const void* data, size_t len){
-        this->data = (void*)data;
+        this->data = (uint8_t*)data;
         this->size = len;    
     }
 
@@ -69,8 +73,8 @@ bool is_mad_stopped = true;
 MadAudioInfo mad_info;
 
 #ifdef ARDUINO
-Print *mad_output_stream = nullptr;
 Stream *mad_input_stream = nullptr;
+Print *mad_output_stream = nullptr;
 #endif
 
 /**
@@ -86,6 +90,12 @@ class MP3DecoderMAD  {
         MP3DecoderMAD(){
         }
 
+        ~MP3DecoderMAD(){
+            if (mad_buffer.cleanup && mad_buffer.data != nullptr){
+                delete [] mad_buffer.data;
+            }
+        }
+
         MP3DecoderMAD(MP3DataCallback dataCallback, MP3InfoCallback infoCB=nullptr){
             setDataCallback(dataCallback);
             setInfoCallback(infoCB);
@@ -97,12 +107,12 @@ class MP3DecoderMAD  {
             setInfoCallback(infoCB);
         }
 
-        void setOutput(Print &mad_output_streamput){
-            this->mad_output_stream = &mad_output_streamput;
+        void setOutput(Print &out){
+            mad_output_stream = &out;
         }
 
         void setInput(Stream &input){
-            this->mad_input_stream = &input;
+            mad_input_stream = &input;
         }
 #endif
 
@@ -184,10 +194,6 @@ class MP3DecoderMAD  {
 
     protected:
         struct mad_decoder decoder;
-#ifdef ARDUINO
-        Stream *mad_input_stream = nullptr;
-        Print *mad_output_stream = nullptr;
-#endif
         /*
         * This is the input callback. The purpose of this callback is to (re)fill
         * the stream buffer which is to be decoded. We try to refill it 1) from the 
@@ -206,20 +212,16 @@ class MP3DecoderMAD  {
 
 #ifdef ARDUINO
             // We take the data from the input stream by filling the buffer
-            if (in!=nullptr){
-                int len = mad_input_stream->available();
-                if (len==0) {
-                    return MAD_FLOW_STOP;
+            if (mad_input_stream!=nullptr){
+                // allocate buffer
+                if (mad_buffer.data==nullptr){
+                    mad_buffer.data = new uint8_t[MAD_READ_DATA_MAX_SIZE];
+                    mad_buffer.cleanup = true;
                 }
-                buffer_ptr->clear();
-                int max_len = min(len, buffer_ptr->availableForWrite());
-                for (int j=0;j<max_len;j++){
-                    buffer_ptr->write(mad_input_stream.read());
-                }
-                mad_stream_buffer(stream, buffer_ptr->address(), buffer_ptr->available());
-                buffer_ptr->clear();
-
-                return MAD_FLOW_CONTINUE;
+                // Make data available
+                int max_len = min(MAD_READ_DATA_MAX_SIZE, mad_input_stream->available());
+                int len_read = mad_input_stream->readBytes(mad_buffer.data, max_len);
+                mad_buffer.size = len_read;
             }
 #endif            
 
