@@ -205,7 +205,7 @@ class MP3DecoderMAD  {
             // We take the data from the input stream by filling the buffer
             if (in!=nullptr){
                 int len = mad_input_stream->available();
-                if (len==0) {}
+                if (len==0) {
                     return MAD_FLOW_STOP;
                 }
                 buffer_ptr->clear();
@@ -221,7 +221,7 @@ class MP3DecoderMAD  {
 #endif            
 
             // If buffer is empty we stop to give the system the chance to provide more data
-            int len = mad_buffer.size>0;
+            int len = mad_buffer.size;
             if (len==0) {
                 is_mad_stopped = true;
                 return MAD_FLOW_STOP;
