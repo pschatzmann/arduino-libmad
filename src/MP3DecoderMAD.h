@@ -68,8 +68,7 @@ MadInputData mad_buffer;
 MP3DataCallback pwmCallback = nullptr;
 MP3InfoCallback infoCallback = nullptr;
 MP3MadInputDataCallback inputCallback = nullptr;
-bool is_mad_running = false;
-bool is_mad_stopped = true;
+bool is_active = false;
 MadAudioInfo mad_info;
 
 #ifdef ARDUINO
@@ -134,8 +133,7 @@ class MP3DecoderMAD  {
          /// Starts the processing
         void begin(){
             LOG(Debug, "begin");
-            is_mad_running = false;
-            is_mad_stopped = false;
+            is_active = true;
             mad_decoder_init(&decoder, this,
                     input, 0 /* header */, 0 /* filter */, output,
                     error, 0 /* message */);
@@ -143,14 +141,13 @@ class MP3DecoderMAD  {
             // if we got an input callback
             if (inputCallback!=nullptr){
                 mad_decoder_run(&decoder, MAD_DECODER_MODE_SYNC);
-                is_mad_running = true;
             }
 
 #ifdef ARDUINO
             // if we got an input stream we start the decoding
             if (mad_input_stream!=nullptr){
                 mad_decoder_run(&decoder, MAD_DECODER_MODE_SYNC);
-                is_mad_running = true;
+                is_active = true;
             }
 #endif
         }
@@ -159,8 +156,7 @@ class MP3DecoderMAD  {
         void end(){
             LOG(Debug, "end");
             mad_decoder_finish(&decoder);
-            is_mad_running = false;
-            is_mad_stopped = true;
+            is_active = false;
         }
 
         /// Provides the last valid audio information
@@ -180,16 +176,16 @@ class MP3DecoderMAD  {
             mad_buffer.data = (uint8_t*)data;
             mad_buffer.size = len;
             // start the decoder after we have some data
-            if (!is_mad_running){
-                mad_decoder_run(&decoder, MAD_DECODER_MODE_SYNC);
-                is_mad_running = true;
+            if (mad_decoder_run(&decoder, MAD_DECODER_MODE_SYNC)==0){
+                // when we steop the buffer has been consumed
+                mad_buffer.size = 0;
             }
             return len;
         }
 
         /// Returns true as long as we are processing data
         operator bool(){
-            return !is_mad_stopped;
+            return is_active;
         }
 
     protected:
@@ -228,7 +224,6 @@ class MP3DecoderMAD  {
             // If buffer is empty we stop to give the system the chance to provide more data
             int len = mad_buffer.size;
             if (len==0) {
-                is_mad_stopped = true;
                 return MAD_FLOW_STOP;
             }
 
