@@ -22,15 +22,14 @@
 # ifndef LIBMAD_SYNTH_H
 # define LIBMAD_SYNTH_H
 
-# include "fixed.h"
-# include "frame.h"
-#include <stdint.h>
+#include "fixed.h"
+#include "frame.h"
 
 struct mad_pcm {
   unsigned int samplerate;		/* sampling frequency (Hz) */
   unsigned short channels;		/* number of channels */
   unsigned short length;		/* number of samples per channel */
-  int16_t samples[2][32]; //1152];		/* PCM output samples [ch][sample] */
+  mad_fixed_t samples[2][1152];		/* PCM output samples [ch][sample] */
 };
 
 struct mad_synth {
@@ -65,7 +64,6 @@ void mad_synth_init(struct mad_synth *);
 
 void mad_synth_mute(struct mad_synth *);
 
-enum mad_flow mad_synth_frame(struct mad_synth *, struct mad_frame const *, enum mad_flow (*output_func)(void *s, struct mad_header const *, struct mad_pcm *), void *cbdata );
-enum mad_flow mad_synth_frame_onens(struct mad_synth *synth, struct mad_frame const *frame, unsigned int ns);
+void mad_synth_frame(struct mad_synth *, struct mad_frame const *);
 
 # endif

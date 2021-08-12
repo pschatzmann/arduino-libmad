@@ -22,9 +22,9 @@
 # ifndef LIBMAD_DECODER_H
 # define LIBMAD_DECODER_H
 
-# include "stream.h"
-# include "frame.h"
-# include "synth.h"
+#include "stream.h"
+#include "frame.h"
+#include "synth.h"
 
 enum mad_decoder_mode {
   MAD_DECODER_MODE_SYNC  = 0,

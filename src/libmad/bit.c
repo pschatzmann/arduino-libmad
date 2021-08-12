@@ -19,20 +19,17 @@
  * $Id: bit.c,v 1.12 2004/01/23 09:41:32 rob Exp $
  */
 
-#pragma GCC optimize ("O3")
+#include "config.h"
 
-#include "mad_pgmspace.h"
-#  include "config.h"
-
-# include "global.h"
+#include "global.h"
 
 # ifdef HAVE_LIMITS_H
-#  include <limits.h>
+#include <limits.h>
 # else
 #  define CHAR_BIT  8
 # endif
 
-# include "bit.h"
+#include "bit.h"
 
 /*
  * This is the lookup table for computing the CRC-check word.
@@ -41,7 +38,8 @@
  *
  * G(X) = X^16 + X^15 + X^2 + 1
  */
-static const unsigned int crc_table[256] PROGMEM = {
+static
+unsigned short const crc_table[256] = {
   0x0000, 0x8005, 0x800f, 0x000a, 0x801b, 0x001e, 0x0014, 0x8011,
   0x8033, 0x0036, 0x003c, 0x8039, 0x0028, 0x802d, 0x8027, 0x0022,
   0x8063, 0x0066, 0x006c, 0x8069, 0x0078, 0x807d, 0x8077, 0x0072,
@@ -87,7 +85,6 @@ static const unsigned int crc_table[256] PROGMEM = {
  */
 void mad_bit_init(struct mad_bitptr *bitptr, unsigned char const *byte)
 {
-  stack(__FUNCTION__, __FILE__, __LINE__);
   bitptr->byte  = byte;
   bitptr->cache = 0;
   bitptr->left  = CHAR_BIT;
@@ -100,7 +97,6 @@ void mad_bit_init(struct mad_bitptr *bitptr, unsigned char const *byte)
 unsigned int mad_bit_length(struct mad_bitptr const *begin,
 			    struct mad_bitptr const *end)
 {
-stack(__FUNCTION__, __FILE__, __LINE__);
   return begin->left +
     CHAR_BIT * (end->byte - (begin->byte + 1)) + (CHAR_BIT - end->left);
 }
@@ -111,7 +107,6 @@ stack(__FUNCTION__, __FILE__, __LINE__);
  */
 unsigned char const *mad_bit_nextbyte(struct mad_bitptr const *bitptr)
 {
-stack(__FUNCTION__, __FILE__, __LINE__);
   return bitptr->left == CHAR_BIT ? bitptr->byte : bitptr->byte + 1;
 }
 
@@ -121,7 +116,6 @@ stack(__FUNCTION__, __FILE__, __LINE__);
  */
 void mad_bit_skip(struct mad_bitptr *bitptr, unsigned int len)
 {
-stack(__FUNCTION__, __FILE__, __LINE__);
   bitptr->byte += len / CHAR_BIT;
   bitptr->left -= len % CHAR_BIT;
 
@@ -140,7 +134,7 @@ stack(__FUNCTION__, __FILE__, __LINE__);
  */
 unsigned long mad_bit_read(struct mad_bitptr *bitptr, unsigned int len)
 {
-  unsigned long value;
+  register unsigned long value;
 
   if (bitptr->left == CHAR_BIT)
     bitptr->cache = *bitptr->byte;
@@ -187,7 +181,6 @@ void mad_bit_write(struct mad_bitptr *bitptr, unsigned int len,
 		   unsigned long value)
 {
   unsigned char *ptr;
-stack(__FUNCTION__, __FILE__, __LINE__);
 
   ptr = (unsigned char *) bitptr->byte;
 
@@ -202,11 +195,10 @@ stack(__FUNCTION__, __FILE__, __LINE__);
 unsigned short mad_bit_crc(struct mad_bitptr bitptr, unsigned int len,
 			   unsigned short init)
 {
-  unsigned int crc;
-stack(__FUNCTION__, __FILE__, __LINE__);
+  register unsigned int crc;
 
   for (crc = init; len >= 32; len -= 32) {
-    unsigned long data;
+    register unsigned long data;
 
     data = mad_bit_read(&bitptr, 32);
 
@@ -218,22 +210,19 @@ stack(__FUNCTION__, __FILE__, __LINE__);
 
   switch (len / 8) {
   case 3: crc = (crc << 8) ^
-           crc_table[((crc >> 8) ^ mad_bit_read(&bitptr, 8)) & 0xff];
-          /* Falls Through. */
+	    crc_table[((crc >> 8) ^ mad_bit_read(&bitptr, 8)) & 0xff];
   case 2: crc = (crc << 8) ^
-           crc_table[((crc >> 8) ^ mad_bit_read(&bitptr, 8)) & 0xff];
-          /* Falls Through. */
+	    crc_table[((crc >> 8) ^ mad_bit_read(&bitptr, 8)) & 0xff];
   case 1: crc = (crc << 8) ^
-           crc_table[((crc >> 8) ^ mad_bit_read(&bitptr, 8)) & 0xff];
+	    crc_table[((crc >> 8) ^ mad_bit_read(&bitptr, 8)) & 0xff];
 
   len %= 8;
-  /* Falls Through. */
 
   case 0: break;
   }
 
   while (len--) {
-    unsigned int msb;
+    register unsigned int msb;
 
     msb = mad_bit_read(&bitptr, 1) ^ (crc >> 15);
 

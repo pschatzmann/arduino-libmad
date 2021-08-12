@@ -21,11 +21,11 @@
 
 #pragma GCC optimize ("O3")
 
-#  include "config.h"
+#include "config.h"
 
-# include "global.h"
+#include "global.h"
 
-# include "fixed.h"
+#include "fixed.h"
 
 /*
  * NAME:	fixed->abs()

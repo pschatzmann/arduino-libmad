@@ -24,6 +24,7 @@
 extern "C" {
 # endif
 
+#include "config.h"
 
 # define SIZEOF_INT 4
 # define SIZEOF_LONG 4
@@ -706,7 +707,7 @@ struct mad_stream {
   struct mad_bitptr anc_ptr;		/* ancillary bits pointer */
   unsigned int anc_bitlen;		/* number of ancillary bits */
 
-  unsigned char main_data[MAD_BUFFER_MDLEN];
+  unsigned char (*main_data)[MAD_BUFFER_MDLEN];
 					/* Layer III main_data() */
   unsigned int md_len;			/* bytes in main_data */
 
@@ -790,10 +791,7 @@ struct mad_frame {
   int options;				/* decoding options (from stream) */
 
   mad_fixed_t sbsample[2][36][32];	/* synthesis subband filter samples */
-  mad_fixed_t overlap[2][32][18];	/* Layer III block overlap data */
-
-  mad_fixed_t xr_raw[576*2];
-  mad_fixed_t tmp[576];
+  mad_fixed_t (*overlap)[2][32][18];	/* Layer III block overlap data */
 };
 
 # define MAD_NCHANNELS(header)		((header)->mode ? 2 : 1)
@@ -850,7 +848,7 @@ struct mad_pcm {
   unsigned int samplerate;		/* sampling frequency (Hz) */
   unsigned short channels;		/* number of channels */
   unsigned short length;		/* number of samples per channel */
-  int16_t samples[2][32];//1152];		/* PCM output samples [ch][sample] */
+  mad_fixed_t samples[2][1152];		/* PCM output samples [ch][sample] */
 };
 
 struct mad_synth {
@@ -883,19 +881,9 @@ void mad_synth_init(struct mad_synth *);
 
 # define mad_synth_finish(synth)  /* nothing */
 
-
-enum mad_flow {
-  MAD_FLOW_CONTINUE = 0x0000,  /* continue normally */
-  MAD_FLOW_STOP     = 0x0010, /* stop decoding normally */
-  MAD_FLOW_BREAK    = 0x0011, /* stop decoding and signal an error */
-  MAD_FLOW_IGNORE   = 0x0020  /* ignore the current frame */
-};
-
-
 void mad_synth_mute(struct mad_synth *);
 
-enum mad_flow mad_synth_frame(struct mad_synth *, struct mad_frame const *, enum mad_flow (*output_func)(void *s, struct mad_header const *, struct mad_pcm *), void *cbdata );
-enum mad_flow mad_synth_frame_onens(struct mad_synth *synth, struct mad_frame const *frame, unsigned int ns);
+void mad_synth_frame(struct mad_synth *, struct mad_frame const *);
 
 # endif
 
@@ -910,6 +898,12 @@ enum mad_decoder_mode {
   MAD_DECODER_MODE_ASYNC
 };
 
+enum mad_flow {
+  MAD_FLOW_CONTINUE = 0x0000,	/* continue normally */
+  MAD_FLOW_STOP     = 0x0010,	/* stop decoding normally */
+  MAD_FLOW_BREAK    = 0x0011,	/* stop decoding and signal an error */
+  MAD_FLOW_IGNORE   = 0x0020	/* ignore the current frame */
+};
 
 struct mad_decoder {
   enum mad_decoder_mode mode;

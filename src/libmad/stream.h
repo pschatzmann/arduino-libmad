@@ -22,7 +22,7 @@
 # ifndef LIBMAD_STREAM_H
 # define LIBMAD_STREAM_H
 
-# include "bit.h"
+#include "bit.h"
 
 # define MAD_BUFFER_GUARD	8
 # define MAD_BUFFER_MDLEN	(511 + 2048 + MAD_BUFFER_GUARD)
@@ -73,7 +73,7 @@ struct mad_stream {
   struct mad_bitptr anc_ptr;		/* ancillary bits pointer */
   unsigned int anc_bitlen;		/* number of ancillary bits */
 
-  unsigned char main_data[MAD_BUFFER_MDLEN];
+  unsigned char (*main_data)[MAD_BUFFER_MDLEN];
 					/* Layer III main_data() */
   unsigned int md_len;			/* bytes in main_data */
 

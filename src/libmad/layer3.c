@@ -1,51 +1,48 @@
 /*
-   libmad - MPEG audio decoder library
-   Copyright (C) 2000-2004 Underbit Technologies, Inc.
-
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or
-   (at your option) any later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
-   $Id: layer3.c,v 1.43 2004/01/23 09:41:32 rob Exp $
-*/
-
+ * libmad - MPEG audio decoder library
+ * Copyright (C) 2000-2004 Underbit Technologies, Inc.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ * $Id: layer3.c,v 1.43 2004/01/23 09:41:32 rob Exp $
+ */
 #pragma GCC optimize ("O3")
 
-#include "mad_pgmspace.h"
-#  include "config.h"
+#include "config.h"
 
-# include "global.h"
+#include "global.h"
 
-# include <stdlib.h>
-# include <string.h>
-# include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 # ifdef HAVE_ASSERT_H
-#  include <assert.h>
+#include <assert.h>
 # endif
 
 # ifdef HAVE_LIMITS_H
-#  include <limits.h>
+#include <limits.h>
 # else
 #  define CHAR_BIT  8
 # endif
 
-# include "fixed.h"
-# include "bit.h"
-# include "stream.h"
-# include "frame.h"
-# include "huffman.h"
-# include "layer3.h"
+#include "fixed.h"
+#include "bit.h"
+#include "stream.h"
+#include "frame.h"
+#include "huffman.h"
+#include "layer3.h"
 
 /* --- Layer III ----------------------------------------------------------- */
 
@@ -89,14 +86,14 @@ struct sideinfo {
 };
 
 /*
-   scalefactor bit lengths
-   derived from section 2.4.2.7 of ISO/IEC 11172-3
-*/
+ * scalefactor bit lengths
+ * derived from section 2.4.2.7 of ISO/IEC 11172-3
+ */
 static
 struct {
-  unsigned int slen1;
-  unsigned int slen2;
-} const sflen_table[16] PROGMEM = {
+  unsigned char slen1;
+  unsigned char slen2;
+} const sflen_table[16] = {
   { 0, 0 }, { 0, 1 }, { 0, 2 }, { 0, 3 },
   { 3, 0 }, { 1, 1 }, { 1, 2 }, { 1, 3 },
   { 2, 1 }, { 2, 2 }, { 2, 3 }, { 3, 1 },
@@ -104,181 +101,175 @@ struct {
 };
 
 /*
-   number of LSF scalefactor band values
-   derived from section 2.4.3.2 of ISO/IEC 13818-3
-*/
+ * number of LSF scalefactor band values
+ * derived from section 2.4.3.2 of ISO/IEC 13818-3
+ */
 static
-unsigned int const nsfb_table[6][3][4] PROGMEM = {
+unsigned char const nsfb_table[6][3][4] = {
   { {  6,  5,  5, 5 },
     {  9,  9,  9, 9 },
-    {  6,  9,  9, 9 }
-  },
+    {  6,  9,  9, 9 } },
 
   { {  6,  5,  7, 3 },
     {  9,  9, 12, 6 },
-    {  6,  9, 12, 6 }
-  },
+    {  6,  9, 12, 6 } },
 
   { { 11, 10,  0, 0 },
     { 18, 18,  0, 0 },
-    { 15, 18,  0, 0 }
-  },
+    { 15, 18,  0, 0 } },
 
   { {  7,  7,  7, 0 },
     { 12, 12, 12, 0 },
-    {  6, 15, 12, 0 }
-  },
+    {  6, 15, 12, 0 } },
 
   { {  6,  6,  6, 3 },
     { 12,  9,  9, 6 },
-    {  6, 12,  9, 6 }
-  },
+    {  6, 12,  9, 6 } },
 
   { {  8,  8,  5, 0 },
     { 15, 12,  9, 0 },
-    {  6, 18,  9, 0 }
-  }
+    {  6, 18,  9, 0 } }
 };
 
 /*
-   MPEG-1 scalefactor band widths
-   derived from Table B.8 of ISO/IEC 11172-3
-*/
+ * MPEG-1 scalefactor band widths
+ * derived from Table B.8 of ISO/IEC 11172-3
+ */
 static
-unsigned int const sfb_48000_long[] PROGMEM = {
-  4,  4,  4,  4,  4,  4,  6,  6,  6,   8,  10,
+unsigned char const sfb_48000_long[] = {
+   4,  4,  4,  4,  4,  4,  6,  6,  6,   8,  10,
   12, 16, 18, 22, 28, 34, 40, 46, 54,  54, 192
 };
 
 static
-unsigned int const sfb_44100_long[] PROGMEM = {
-  4,  4,  4,  4,  4,  4,  6,  6,  8,   8,  10,
+unsigned char const sfb_44100_long[] = {
+   4,  4,  4,  4,  4,  4,  6,  6,  8,   8,  10,
   12, 16, 20, 24, 28, 34, 42, 50, 54,  76, 158
 };
 
 static
-unsigned int const sfb_32000_long[] PROGMEM = {
-  4,  4,  4,  4,  4,  4,  6,  6,  8,  10,  12,
+unsigned char const sfb_32000_long[] = {
+   4,  4,  4,  4,  4,  4,  6,  6,  8,  10,  12,
   16, 20, 24, 30, 38, 46, 56, 68, 84, 102,  26
 };
 
 static
-unsigned int const sfb_48000_short[] PROGMEM = {
-  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  6,
-  6,  6,  6,  6,  6, 10, 10, 10, 12, 12, 12, 14, 14,
+unsigned char const sfb_48000_short[] = {
+   4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  6,
+   6,  6,  6,  6,  6, 10, 10, 10, 12, 12, 12, 14, 14,
   14, 16, 16, 16, 20, 20, 20, 26, 26, 26, 66, 66, 66
 };
 
 static
-unsigned int const sfb_44100_short[] PROGMEM = {
-  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  6,
-  6,  6,  8,  8,  8, 10, 10, 10, 12, 12, 12, 14, 14,
+unsigned char const sfb_44100_short[] = {
+   4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  6,
+   6,  6,  8,  8,  8, 10, 10, 10, 12, 12, 12, 14, 14,
   14, 18, 18, 18, 22, 22, 22, 30, 30, 30, 56, 56, 56
 };
 
 static
-unsigned int const sfb_32000_short[] PROGMEM = {
-  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  6,
-  6,  6,  8,  8,  8, 12, 12, 12, 16, 16, 16, 20, 20,
+unsigned char const sfb_32000_short[] = {
+   4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  6,
+   6,  6,  8,  8,  8, 12, 12, 12, 16, 16, 16, 20, 20,
   20, 26, 26, 26, 34, 34, 34, 42, 42, 42, 12, 12, 12
 };
 
 static
-unsigned int const sfb_48000_mixed[] PROGMEM = {
+unsigned char const sfb_48000_mixed[] = {
   /* long */   4,  4,  4,  4,  4,  4,  6,  6,
   /* short */  4,  4,  4,  6,  6,  6,  6,  6,  6, 10,
-  10, 10, 12, 12, 12, 14, 14, 14, 16, 16,
-  16, 20, 20, 20, 26, 26, 26, 66, 66, 66
+              10, 10, 12, 12, 12, 14, 14, 14, 16, 16,
+              16, 20, 20, 20, 26, 26, 26, 66, 66, 66
 };
 
 static
-unsigned int const sfb_44100_mixed[] PROGMEM = {
+unsigned char const sfb_44100_mixed[] = {
   /* long */   4,  4,  4,  4,  4,  4,  6,  6,
   /* short */  4,  4,  4,  6,  6,  6,  8,  8,  8, 10,
-  10, 10, 12, 12, 12, 14, 14, 14, 18, 18,
-  18, 22, 22, 22, 30, 30, 30, 56, 56, 56
+              10, 10, 12, 12, 12, 14, 14, 14, 18, 18,
+              18, 22, 22, 22, 30, 30, 30, 56, 56, 56
 };
 
 static
-unsigned int const sfb_32000_mixed[] PROGMEM = {
+unsigned char const sfb_32000_mixed[] = {
   /* long */   4,  4,  4,  4,  4,  4,  6,  6,
   /* short */  4,  4,  4,  6,  6,  6,  8,  8,  8, 12,
-  12, 12, 16, 16, 16, 20, 20, 20, 26, 26,
-  26, 34, 34, 34, 42, 42, 42, 12, 12, 12
+              12, 12, 16, 16, 16, 20, 20, 20, 26, 26,
+              26, 34, 34, 34, 42, 42, 42, 12, 12, 12
 };
 
 /*
-   MPEG-2 scalefactor band widths
-   derived from Table B.2 of ISO/IEC 13818-3
-*/
+ * MPEG-2 scalefactor band widths
+ * derived from Table B.2 of ISO/IEC 13818-3
+ */
 static
-unsigned int const sfb_24000_long[] PROGMEM = {
-  6,  6,  6,  6,  6,  6,  8, 10, 12,  14,  16,
+unsigned char const sfb_24000_long[] = {
+   6,  6,  6,  6,  6,  6,  8, 10, 12,  14,  16,
   18, 22, 26, 32, 38, 46, 54, 62, 70,  76,  36
 };
 
 static
-unsigned int const sfb_22050_long[] PROGMEM = {
-  6,  6,  6,  6,  6,  6,  8, 10, 12,  14,  16,
+unsigned char const sfb_22050_long[] = {
+   6,  6,  6,  6,  6,  6,  8, 10, 12,  14,  16,
   20, 24, 28, 32, 38, 46, 52, 60, 68,  58,  54
 };
 
 # define sfb_16000_long  sfb_22050_long
 
 static
-unsigned int const sfb_24000_short[] PROGMEM = {
-  4,  4,  4,  4,  4,  4,  4,  4,  4,  6,  6,  6,  8,
-  8,  8, 10, 10, 10, 12, 12, 12, 14, 14, 14, 18, 18,
+unsigned char const sfb_24000_short[] = {
+   4,  4,  4,  4,  4,  4,  4,  4,  4,  6,  6,  6,  8,
+   8,  8, 10, 10, 10, 12, 12, 12, 14, 14, 14, 18, 18,
   18, 24, 24, 24, 32, 32, 32, 44, 44, 44, 12, 12, 12
 };
 
 static
-unsigned int const sfb_22050_short[] PROGMEM = {
-  4,  4,  4,  4,  4,  4,  4,  4,  4,  6,  6,  6,  6,
-  6,  6,  8,  8,  8, 10, 10, 10, 14, 14, 14, 18, 18,
+unsigned char const sfb_22050_short[] = {
+   4,  4,  4,  4,  4,  4,  4,  4,  4,  6,  6,  6,  6,
+   6,  6,  8,  8,  8, 10, 10, 10, 14, 14, 14, 18, 18,
   18, 26, 26, 26, 32, 32, 32, 42, 42, 42, 18, 18, 18
 };
 
 static
-unsigned int const sfb_16000_short[] PROGMEM = {
-  4,  4,  4,  4,  4,  4,  4,  4,  4,  6,  6,  6,  8,
-  8,  8, 10, 10, 10, 12, 12, 12, 14, 14, 14, 18, 18,
+unsigned char const sfb_16000_short[] = {
+   4,  4,  4,  4,  4,  4,  4,  4,  4,  6,  6,  6,  8,
+   8,  8, 10, 10, 10, 12, 12, 12, 14, 14, 14, 18, 18,
   18, 24, 24, 24, 30, 30, 30, 40, 40, 40, 18, 18, 18
 };
 
 static
-unsigned int const sfb_24000_mixed[] PROGMEM = {
+unsigned char const sfb_24000_mixed[] = {
   /* long */   6,  6,  6,  6,  6,  6,
   /* short */  6,  6,  6,  8,  8,  8, 10, 10, 10, 12,
-  12, 12, 14, 14, 14, 18, 18, 18, 24, 24,
-  24, 32, 32, 32, 44, 44, 44, 12, 12, 12
+              12, 12, 14, 14, 14, 18, 18, 18, 24, 24,
+              24, 32, 32, 32, 44, 44, 44, 12, 12, 12
 };
 
 static
-unsigned int const sfb_22050_mixed[] PROGMEM = {
+unsigned char const sfb_22050_mixed[] = {
   /* long */   6,  6,  6,  6,  6,  6,
   /* short */  6,  6,  6,  6,  6,  6,  8,  8,  8, 10,
-  10, 10, 14, 14, 14, 18, 18, 18, 26, 26,
-  26, 32, 32, 32, 42, 42, 42, 18, 18, 18
+              10, 10, 14, 14, 14, 18, 18, 18, 26, 26,
+              26, 32, 32, 32, 42, 42, 42, 18, 18, 18
 };
 
 static
-unsigned int const sfb_16000_mixed[] PROGMEM = {
+unsigned char const sfb_16000_mixed[] = {
   /* long */   6,  6,  6,  6,  6,  6,
   /* short */  6,  6,  6,  8,  8,  8, 10, 10, 10, 12,
-  12, 12, 14, 14, 14, 18, 18, 18, 24, 24,
-  24, 30, 30, 30, 40, 40, 40, 18, 18, 18
+              12, 12, 14, 14, 14, 18, 18, 18, 24, 24,
+              24, 30, 30, 30, 40, 40, 40, 18, 18, 18
 };
 
 /*
-   MPEG 2.5 scalefactor band widths
-   derived from public sources
-*/
+ * MPEG 2.5 scalefactor band widths
+ * derived from public sources
+ */
 # define sfb_12000_long  sfb_16000_long
 # define sfb_11025_long  sfb_12000_long
 
 static
-unsigned int const sfb_8000_long[] PROGMEM = {
+unsigned char const sfb_8000_long[] = {
   12, 12, 12, 12, 12, 12, 16, 20, 24,  28,  32,
   40, 48, 56, 64, 76, 90,  2,  2,  2,   2,   2
 };
@@ -287,8 +278,8 @@ unsigned int const sfb_8000_long[] PROGMEM = {
 # define sfb_11025_short  sfb_12000_short
 
 static
-unsigned int const sfb_8000_short[] PROGMEM = {
-  8,  8,  8,  8,  8,  8,  8,  8,  8, 12, 12, 12, 16,
+unsigned char const sfb_8000_short[] = {
+   8,  8,  8,  8,  8,  8,  8,  8,  8, 12, 12, 12, 16,
   16, 16, 20, 20, 20, 24, 24, 24, 28, 28, 28, 36, 36,
   36,  2,  2,  2,  2,  2,  2,  2,  2,  2, 26, 26, 26
 };
@@ -299,19 +290,19 @@ unsigned int const sfb_8000_short[] PROGMEM = {
 /* the 8000 Hz short block scalefactor bands do not break after
    the first 36 frequency lines, so this is probably wrong */
 static
-unsigned int const sfb_8000_mixed[] PROGMEM = {
+unsigned char const sfb_8000_mixed[] = {
   /* long */  12, 12, 12,
   /* short */  4,  4,  4,  8,  8,  8, 12, 12, 12, 16, 16, 16,
-  20, 20, 20, 24, 24, 24, 28, 28, 28, 36, 36, 36,
-  2,  2,  2,  2,  2,  2,  2,  2,  2, 26, 26, 26
+              20, 20, 20, 24, 24, 24, 28, 28, 28, 36, 36, 36,
+               2,  2,  2,  2,  2,  2,  2,  2,  2, 26, 26, 26
 };
 
 static
 struct {
-  unsigned int const *l;
-  unsigned int const *s;
-  unsigned int const *m;
-} const sfbwidth_table[9] PROGMEM = {
+  unsigned char const *l;
+  unsigned char const *s;
+  unsigned char const *m;
+} const sfbwidth_table[9] = {
   { sfb_48000_long, sfb_48000_short, sfb_48000_mixed },
   { sfb_44100_long, sfb_44100_short, sfb_44100_mixed },
   { sfb_32000_long, sfb_32000_short, sfb_32000_mixed },
@@ -324,178 +315,155 @@ struct {
 };
 
 /*
-   scalefactor band preemphasis (used only when preflag is set)
-   derived from Table B.6 of ISO/IEC 11172-3
-*/
+ * scalefactor band preemphasis (used only when preflag is set)
+ * derived from Table B.6 of ISO/IEC 11172-3
+ */
 static
-unsigned int const pretab[22] PROGMEM = {
+unsigned char const pretab[22] = {
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 3, 3, 3, 2, 0
 };
 
 /*
-   table for requantization
-
-   rq_table[x].mantissa * 2^(rq_table[x].exponent) = x^(4/3)
-*/
+ * table for requantization
+ *
+ * rq_table[x].mantissa * 2^(rq_table[x].exponent) = x^(4/3)
+ */
 static
 struct fixedfloat {
   unsigned long mantissa  : 27;
   unsigned short exponent :  5;
-} const rq_table[8207] PROGMEM = {
-# include "rq_table.dat.h"
+} const rq_table[8207] = {
+#include "rq_table.dat"
 };
 
 /*
-   fractional powers of two
-   used for requantization and joint stereo decoding
-
-   root_table[3 + x] = 2^(x/4)
-*/
-static inline mad_fixed_t root_table(int i)
-{
-  static mad_fixed_t const root_table_val[7] PROGMEM = {
-    MAD_F(0x09837f05) /* 2^(-3/4) == 0.59460355750136 */,
-    MAD_F(0x0b504f33) /* 2^(-2/4) == 0.70710678118655 */,
-    MAD_F(0x0d744fcd) /* 2^(-1/4) == 0.84089641525371 */,
-    MAD_F(0x10000000) /* 2^( 0/4) == 1.00000000000000 */,
-    MAD_F(0x1306fe0a) /* 2^(+1/4) == 1.18920711500272 */,
-    MAD_F(0x16a09e66) /* 2^(+2/4) == 1.41421356237310 */,
-    MAD_F(0x1ae89f99) /* 2^(+3/4) == 1.68179283050743 */
-  };
-  volatile uint32_t a = *(uint32_t*)&root_table_val[i];
-  return *(mad_fixed_t*)&a;
-}
-/*
-   coefficients for aliasing reduction
-   derived from Table B.9 of ISO/IEC 11172-3
-
-    c[]  = { -0.6, -0.535, -0.33, -0.185, -0.095, -0.041, -0.0142, -0.0037 }
-   cs[i] =    1 / sqrt(1 + c[i]^2)
-   ca[i] = c[i] / sqrt(1 + c[i]^2)
-*/
-static inline mad_fixed_t cs(int i)
-{
-  static mad_fixed_t const cs_val[8] PROGMEM = {
-    +MAD_F(0x0db84a81) /* +0.857492926 */, +MAD_F(0x0e1b9d7f) /* +0.881741997 */,
-    +MAD_F(0x0f31adcf) /* +0.949628649 */, +MAD_F(0x0fbba815) /* +0.983314592 */,
-    +MAD_F(0x0feda417) /* +0.995517816 */, +MAD_F(0x0ffc8fc8) /* +0.999160558 */,
-    +MAD_F(0x0fff964c) /* +0.999899195 */, +MAD_F(0x0ffff8d3) /* +0.999993155 */
-  };
-  volatile uint32_t a = *(uint32_t*)&cs_val[i];
-  return *(mad_fixed_t*)&a;
-}
-
-static inline mad_fixed_t ca(int i)
-{
-  static mad_fixed_t const ca_val[8] PROGMEM = {
-    -MAD_F(0x083b5fe7) /* -0.514495755 */, -MAD_F(0x078c36d2) /* -0.471731969 */,
-    -MAD_F(0x05039814) /* -0.313377454 */, -MAD_F(0x02e91dd1) /* -0.181913200 */,
-    -MAD_F(0x0183603a) /* -0.094574193 */, -MAD_F(0x00a7cb87) /* -0.040965583 */,
-    -MAD_F(0x003a2847) /* -0.014198569 */, -MAD_F(0x000f27b4) /* -0.003699975 */
-  };
-  volatile uint32_t a = *(uint32_t*)&ca_val[i];
-  return *(mad_fixed_t*)&a;
-}
-
-/*
-   IMDCT coefficients for short blocks
-   derived from section 2.4.3.4.10.2 of ISO/IEC 11172-3
-
-   imdct_s[i/even][k] = cos((PI / 24) * (2 *       (i / 2) + 7) * (2 * k + 1))
-   imdct_s[i /odd][k] = cos((PI / 24) * (2 * (6 + (i-1)/2) + 7) * (2 * k + 1))
-*/
+ * fractional powers of two
+ * used for requantization and joint stereo decoding
+ *
+ * root_table[3 + x] = 2^(x/4)
+ */
 static
-mad_fixed_t const imdct_s[6][6] PROGMEM  = {
-# include "imdct_s.dat.h"
+mad_fixed_t const root_table[7] = {
+  MAD_F(0x09837f05) /* 2^(-3/4) == 0.59460355750136 */,
+  MAD_F(0x0b504f33) /* 2^(-2/4) == 0.70710678118655 */,
+  MAD_F(0x0d744fcd) /* 2^(-1/4) == 0.84089641525371 */,
+  MAD_F(0x10000000) /* 2^( 0/4) == 1.00000000000000 */,
+  MAD_F(0x1306fe0a) /* 2^(+1/4) == 1.18920711500272 */,
+  MAD_F(0x16a09e66) /* 2^(+2/4) == 1.41421356237310 */,
+  MAD_F(0x1ae89f99) /* 2^(+3/4) == 1.68179283050743 */
+};
+
+/*
+ * coefficients for aliasing reduction
+ * derived from Table B.9 of ISO/IEC 11172-3
+ *
+ *  c[]  = { -0.6, -0.535, -0.33, -0.185, -0.095, -0.041, -0.0142, -0.0037 }
+ * cs[i] =    1 / sqrt(1 + c[i]^2)
+ * ca[i] = c[i] / sqrt(1 + c[i]^2)
+ */
+static
+mad_fixed_t const cs[8] = {
+  +MAD_F(0x0db84a81) /* +0.857492926 */, +MAD_F(0x0e1b9d7f) /* +0.881741997 */,
+  +MAD_F(0x0f31adcf) /* +0.949628649 */, +MAD_F(0x0fbba815) /* +0.983314592 */,
+  +MAD_F(0x0feda417) /* +0.995517816 */, +MAD_F(0x0ffc8fc8) /* +0.999160558 */,
+  +MAD_F(0x0fff964c) /* +0.999899195 */, +MAD_F(0x0ffff8d3) /* +0.999993155 */
+};
+
+static
+mad_fixed_t const ca[8] = {
+  -MAD_F(0x083b5fe7) /* -0.514495755 */, -MAD_F(0x078c36d2) /* -0.471731969 */,
+  -MAD_F(0x05039814) /* -0.313377454 */, -MAD_F(0x02e91dd1) /* -0.181913200 */,
+  -MAD_F(0x0183603a) /* -0.094574193 */, -MAD_F(0x00a7cb87) /* -0.040965583 */,
+  -MAD_F(0x003a2847) /* -0.014198569 */, -MAD_F(0x000f27b4) /* -0.003699975 */
+};
+
+/*
+ * IMDCT coefficients for short blocks
+ * derived from section 2.4.3.4.10.2 of ISO/IEC 11172-3
+ *
+ * imdct_s[i/even][k] = cos((PI / 24) * (2 *       (i / 2) + 7) * (2 * k + 1))
+ * imdct_s[i /odd][k] = cos((PI / 24) * (2 * (6 + (i-1)/2) + 7) * (2 * k + 1))
+ */
+static
+mad_fixed_t const imdct_s[6][6] = {
+#include "imdct_s.dat"
 };
 
 # if !defined(ASO_IMDCT)
 /*
-   windowing coefficients for long blocks
-   derived from section 2.4.3.4.10.3 of ISO/IEC 11172-3
+ * windowing coefficients for long blocks
+ * derived from section 2.4.3.4.10.3 of ISO/IEC 11172-3
+ *
+ * window_l[i] = sin((PI / 36) * (i + 1/2))
+ */
+static
+mad_fixed_t const window_l[36] = {
+  MAD_F(0x00b2aa3e) /* 0.043619387 */, MAD_F(0x0216a2a2) /* 0.130526192 */,
+  MAD_F(0x03768962) /* 0.216439614 */, MAD_F(0x04cfb0e2) /* 0.300705800 */,
+  MAD_F(0x061f78aa) /* 0.382683432 */, MAD_F(0x07635284) /* 0.461748613 */,
+  MAD_F(0x0898c779) /* 0.537299608 */, MAD_F(0x09bd7ca0) /* 0.608761429 */,
+  MAD_F(0x0acf37ad) /* 0.675590208 */, MAD_F(0x0bcbe352) /* 0.737277337 */,
+  MAD_F(0x0cb19346) /* 0.793353340 */, MAD_F(0x0d7e8807) /* 0.843391446 */,
 
-   window_l[i] = sin((PI / 36) * (i + 1/2))
-*/
-static inline mad_fixed_t window_l(int i)
-{
-  static mad_fixed_t const window_l_val[36] PROGMEM = {
-    MAD_F(0x00b2aa3e) /* 0.043619387 */, MAD_F(0x0216a2a2) /* 0.130526192 */,
-    MAD_F(0x03768962) /* 0.216439614 */, MAD_F(0x04cfb0e2) /* 0.300705800 */,
-    MAD_F(0x061f78aa) /* 0.382683432 */, MAD_F(0x07635284) /* 0.461748613 */,
-    MAD_F(0x0898c779) /* 0.537299608 */, MAD_F(0x09bd7ca0) /* 0.608761429 */,
-    MAD_F(0x0acf37ad) /* 0.675590208 */, MAD_F(0x0bcbe352) /* 0.737277337 */,
-    MAD_F(0x0cb19346) /* 0.793353340 */, MAD_F(0x0d7e8807) /* 0.843391446 */,
+  MAD_F(0x0e313245) /* 0.887010833 */, MAD_F(0x0ec835e8) /* 0.923879533 */,
+  MAD_F(0x0f426cb5) /* 0.953716951 */, MAD_F(0x0f9ee890) /* 0.976296007 */,
+  MAD_F(0x0fdcf549) /* 0.991444861 */, MAD_F(0x0ffc19fd) /* 0.999048222 */,
+  MAD_F(0x0ffc19fd) /* 0.999048222 */, MAD_F(0x0fdcf549) /* 0.991444861 */,
+  MAD_F(0x0f9ee890) /* 0.976296007 */, MAD_F(0x0f426cb5) /* 0.953716951 */,
+  MAD_F(0x0ec835e8) /* 0.923879533 */, MAD_F(0x0e313245) /* 0.887010833 */,
 
-    MAD_F(0x0e313245) /* 0.887010833 */, MAD_F(0x0ec835e8) /* 0.923879533 */,
-    MAD_F(0x0f426cb5) /* 0.953716951 */, MAD_F(0x0f9ee890) /* 0.976296007 */,
-    MAD_F(0x0fdcf549) /* 0.991444861 */, MAD_F(0x0ffc19fd) /* 0.999048222 */,
-    MAD_F(0x0ffc19fd) /* 0.999048222 */, MAD_F(0x0fdcf549) /* 0.991444861 */,
-    MAD_F(0x0f9ee890) /* 0.976296007 */, MAD_F(0x0f426cb5) /* 0.953716951 */,
-    MAD_F(0x0ec835e8) /* 0.923879533 */, MAD_F(0x0e313245) /* 0.887010833 */,
-
-    MAD_F(0x0d7e8807) /* 0.843391446 */, MAD_F(0x0cb19346) /* 0.793353340 */,
-    MAD_F(0x0bcbe352) /* 0.737277337 */, MAD_F(0x0acf37ad) /* 0.675590208 */,
-    MAD_F(0x09bd7ca0) /* 0.608761429 */, MAD_F(0x0898c779) /* 0.537299608 */,
-    MAD_F(0x07635284) /* 0.461748613 */, MAD_F(0x061f78aa) /* 0.382683432 */,
-    MAD_F(0x04cfb0e2) /* 0.300705800 */, MAD_F(0x03768962) /* 0.216439614 */,
-    MAD_F(0x0216a2a2) /* 0.130526192 */, MAD_F(0x00b2aa3e) /* 0.043619387 */,
-  };
-  volatile uint32_t a = *(uint32_t*)&window_l_val[i];
-  return *(mad_fixed_t*)&a;
-}
+  MAD_F(0x0d7e8807) /* 0.843391446 */, MAD_F(0x0cb19346) /* 0.793353340 */,
+  MAD_F(0x0bcbe352) /* 0.737277337 */, MAD_F(0x0acf37ad) /* 0.675590208 */,
+  MAD_F(0x09bd7ca0) /* 0.608761429 */, MAD_F(0x0898c779) /* 0.537299608 */,
+  MAD_F(0x07635284) /* 0.461748613 */, MAD_F(0x061f78aa) /* 0.382683432 */,
+  MAD_F(0x04cfb0e2) /* 0.300705800 */, MAD_F(0x03768962) /* 0.216439614 */,
+  MAD_F(0x0216a2a2) /* 0.130526192 */, MAD_F(0x00b2aa3e) /* 0.043619387 */,
+};
 # endif  /* ASO_IMDCT */
 
 /*
-   windowing coefficients for short blocks
-   derived from section 2.4.3.4.10.3 of ISO/IEC 11172-3
-
-   window_s[i] = sin((PI / 12) * (i + 1/2))
-*/
-static inline mad_fixed_t window_s(int i)
-{
-  static mad_fixed_t const window_s_val[12] PROGMEM = {
-    MAD_F(0x0216a2a2) /* 0.130526192 */, MAD_F(0x061f78aa) /* 0.382683432 */,
-    MAD_F(0x09bd7ca0) /* 0.608761429 */, MAD_F(0x0cb19346) /* 0.793353340 */,
-    MAD_F(0x0ec835e8) /* 0.923879533 */, MAD_F(0x0fdcf549) /* 0.991444861 */,
-    MAD_F(0x0fdcf549) /* 0.991444861 */, MAD_F(0x0ec835e8) /* 0.923879533 */,
-    MAD_F(0x0cb19346) /* 0.793353340 */, MAD_F(0x09bd7ca0) /* 0.608761429 */,
-    MAD_F(0x061f78aa) /* 0.382683432 */, MAD_F(0x0216a2a2) /* 0.130526192 */,
-  };
-  volatile uint32_t a = *(uint32_t*)&window_s_val[i];
-  return *(mad_fixed_t*)&a;
-}
-
-/*
-   coefficients for intensity stereo processing
-   derived from section 2.4.3.4.9.3 of ISO/IEC 11172-3
-
-   is_ratio[i] = tan(i * (PI / 12))
-   is_table[i] = is_ratio[i] / (1 + is_ratio[i])
-*/
-static inline mad_fixed_t is_table(int i)
-{
-  static mad_fixed_t const is_table_val[7] PROGMEM = {
-    MAD_F(0x00000000) /* 0.000000000 */,
-    MAD_F(0x0361962f) /* 0.211324865 */,
-    MAD_F(0x05db3d74) /* 0.366025404 */,
-    MAD_F(0x08000000) /* 0.500000000 */,
-    MAD_F(0x0a24c28c) /* 0.633974596 */,
-    MAD_F(0x0c9e69d1) /* 0.788675135 */,
-    MAD_F(0x10000000) /* 1.000000000 */
-  };
-  volatile uint32_t a = *(uint32_t*)&is_table_val[i];
-  return *(mad_fixed_t*)&a;
-}
-
-/*
-   coefficients for LSF intensity stereo processing
-   derived from section 2.4.3.2 of ISO/IEC 13818-3
-
-   is_lsf_table[0][i] = (1 / sqrt(sqrt(2)))^(i + 1)
-   is_lsf_table[1][i] = (1 /      sqrt(2)) ^(i + 1)
-*/
+ * windowing coefficients for short blocks
+ * derived from section 2.4.3.4.10.3 of ISO/IEC 11172-3
+ *
+ * window_s[i] = sin((PI / 12) * (i + 1/2))
+ */
 static
-mad_fixed_t const is_lsf_table[2][15] PROGMEM = {
+mad_fixed_t const window_s[12] = {
+  MAD_F(0x0216a2a2) /* 0.130526192 */, MAD_F(0x061f78aa) /* 0.382683432 */,
+  MAD_F(0x09bd7ca0) /* 0.608761429 */, MAD_F(0x0cb19346) /* 0.793353340 */,
+  MAD_F(0x0ec835e8) /* 0.923879533 */, MAD_F(0x0fdcf549) /* 0.991444861 */,
+  MAD_F(0x0fdcf549) /* 0.991444861 */, MAD_F(0x0ec835e8) /* 0.923879533 */,
+  MAD_F(0x0cb19346) /* 0.793353340 */, MAD_F(0x09bd7ca0) /* 0.608761429 */,
+  MAD_F(0x061f78aa) /* 0.382683432 */, MAD_F(0x0216a2a2) /* 0.130526192 */,
+};
+
+/*
+ * coefficients for intensity stereo processing
+ * derived from section 2.4.3.4.9.3 of ISO/IEC 11172-3
+ *
+ * is_ratio[i] = tan(i * (PI / 12))
+ * is_table[i] = is_ratio[i] / (1 + is_ratio[i])
+ */
+static
+mad_fixed_t const is_table[7] = {
+  MAD_F(0x00000000) /* 0.000000000 */,
+  MAD_F(0x0361962f) /* 0.211324865 */,
+  MAD_F(0x05db3d74) /* 0.366025404 */,
+  MAD_F(0x08000000) /* 0.500000000 */,
+  MAD_F(0x0a24c28c) /* 0.633974596 */,
+  MAD_F(0x0c9e69d1) /* 0.788675135 */,
+  MAD_F(0x10000000) /* 1.000000000 */
+};
+
+/*
+ * coefficients for LSF intensity stereo processing
+ * derived from section 2.4.3.2 of ISO/IEC 13818-3
+ *
+ * is_lsf_table[0][i] = (1 / sqrt(sqrt(2)))^(i + 1)
+ * is_lsf_table[1][i] = (1 /      sqrt(2)) ^(i + 1)
+ */
+static
+mad_fixed_t const is_lsf_table[2][15] = {
   {
     MAD_F(0x0d744fcd) /* 0.840896415 */,
     MAD_F(0x0b504f33) /* 0.707106781 */,
@@ -532,18 +500,17 @@ mad_fixed_t const is_lsf_table[2][15] PROGMEM = {
 };
 
 /*
-   NAME:	III_sideinfo()
-   DESCRIPTION:	decode frame side information from a bitstream
-*/
+ * NAME:	III_sideinfo()
+ * DESCRIPTION:	decode frame side information from a bitstream
+ */
 static
 enum mad_error III_sideinfo(struct mad_bitptr *ptr, unsigned int nch,
-                            int lsf, struct sideinfo *si,
-                            unsigned int *data_bitlen,
-                            unsigned int *priv_bitlen)
+			    int lsf, struct sideinfo *si,
+			    unsigned int *data_bitlen,
+			    unsigned int *priv_bitlen)
 {
   unsigned int ngr, gr, ch, i;
   enum mad_error result = MAD_ERROR_NONE;
-  stack(__FUNCTION__, __FILE__, __LINE__);
 
   *data_bitlen = 0;
   *priv_bitlen = lsf ? ((nch == 1) ? 1 : 2) : ((nch == 1) ? 5 : 3);
@@ -573,46 +540,46 @@ enum mad_error III_sideinfo(struct mad_bitptr *ptr, unsigned int nch,
       *data_bitlen += channel->part2_3_length;
 
       if (channel->big_values > 288 && result == 0)
-        result = MAD_ERROR_BADBIGVALUES;
+	result = MAD_ERROR_BADBIGVALUES;
 
       channel->flags = 0;
 
       /* window_switching_flag */
       if (mad_bit_read(ptr, 1)) {
-        channel->block_type = mad_bit_read(ptr, 2);
+	channel->block_type = mad_bit_read(ptr, 2);
 
-        if (channel->block_type == 0 && result == 0)
-          result = MAD_ERROR_BADBLOCKTYPE;
+	if (channel->block_type == 0 && result == 0)
+	  result = MAD_ERROR_BADBLOCKTYPE;
 
-        if (!lsf && channel->block_type == 2 && si->scfsi[ch] && result == 0)
-          result = MAD_ERROR_BADSCFSI;
+	if (!lsf && channel->block_type == 2 && si->scfsi[ch] && result == 0)
+	  result = MAD_ERROR_BADSCFSI;
 
-        channel->region0_count = 7;
-        channel->region1_count = 36;
+	channel->region0_count = 7;
+	channel->region1_count = 36;
 
-        if (mad_bit_read(ptr, 1))
-          channel->flags |= mixed_block_flag;
-        else if (channel->block_type == 2)
-          channel->region0_count = 8;
+	if (mad_bit_read(ptr, 1))
+	  channel->flags |= mixed_block_flag;
+	else if (channel->block_type == 2)
+	  channel->region0_count = 8;
 
-        for (i = 0; i < 2; ++i)
-          channel->table_select[i] = mad_bit_read(ptr, 5);
+	for (i = 0; i < 2; ++i)
+	  channel->table_select[i] = mad_bit_read(ptr, 5);
 
 # if defined(DEBUG)
-        channel->table_select[2] = 4;  /* not used */
+	channel->table_select[2] = 4;  /* not used */
 # endif
 
-        for (i = 0; i < 3; ++i)
-          channel->subblock_gain[i] = mad_bit_read(ptr, 3);
+	for (i = 0; i < 3; ++i)
+	  channel->subblock_gain[i] = mad_bit_read(ptr, 3);
       }
       else {
-        channel->block_type = 0;
+	channel->block_type = 0;
 
-        for (i = 0; i < 3; ++i)
-          channel->table_select[i] = mad_bit_read(ptr, 5);
+	for (i = 0; i < 3; ++i)
+	  channel->table_select[i] = mad_bit_read(ptr, 5);
 
-        channel->region0_count = mad_bit_read(ptr, 4);
-        channel->region1_count = mad_bit_read(ptr, 3);
+	channel->region0_count = mad_bit_read(ptr, 4);
+	channel->region1_count = mad_bit_read(ptr, 3);
       }
 
       /* [preflag,] scalefac_scale, count1table_select */
@@ -624,24 +591,23 @@ enum mad_error III_sideinfo(struct mad_bitptr *ptr, unsigned int nch,
 }
 
 /*
-   NAME:	III_scalefactors_lsf()
-   DESCRIPTION:	decode channel scalefactors for LSF from a bitstream
-*/
+ * NAME:	III_scalefactors_lsf()
+ * DESCRIPTION:	decode channel scalefactors for LSF from a bitstream
+ */
 static
 unsigned int III_scalefactors_lsf(struct mad_bitptr *ptr,
-                                  struct channel *channel,
-                                  struct channel *gr1ch, int mode_extension)
+				  struct channel *channel,
+				  struct channel *gr1ch, int mode_extension)
 {
   struct mad_bitptr start;
   unsigned int scalefac_compress, index, slen[4], part, n, i;
-  unsigned int const *nsfb;
-  stack(__FUNCTION__, __FILE__, __LINE__);
+  unsigned char const *nsfb;
 
   start = *ptr;
 
   scalefac_compress = channel->scalefac_compress;
   index = (channel->block_type == 2) ?
-          ((channel->flags & mixed_block_flag) ? 2 : 1) : 0;
+    ((channel->flags & mixed_block_flag) ? 2 : 1) : 0;
 
   if (!((mode_extension & I_STEREO) && gr1ch)) {
     if (scalefac_compress < 400) {
@@ -678,7 +644,7 @@ unsigned int III_scalefactors_lsf(struct mad_bitptr *ptr,
     n = 0;
     for (part = 0; part < 4; ++part) {
       for (i = 0; i < nsfb[part]; ++i)
-        channel->scalefac[n++] = mad_bit_read(ptr, slen[part]);
+	channel->scalefac[n++] = mad_bit_read(ptr, slen[part]);
     }
 
     while (n < 39)
@@ -723,10 +689,10 @@ unsigned int III_scalefactors_lsf(struct mad_bitptr *ptr,
       max = (1 << slen[part]) - 1;
 
       for (i = 0; i < nsfb[part]; ++i) {
-        is_pos = mad_bit_read(ptr, slen[part]);
+	is_pos = mad_bit_read(ptr, slen[part]);
 
-        channel->scalefac[n] = is_pos;
-        gr1ch->scalefac[n++] = (is_pos == max);
+	channel->scalefac[n] = is_pos;
+	gr1ch->scalefac[n++] = (is_pos == max);
       }
     }
 
@@ -740,16 +706,15 @@ unsigned int III_scalefactors_lsf(struct mad_bitptr *ptr,
 }
 
 /*
-   NAME:	III_scalefactors()
-   DESCRIPTION:	decode channel scalefactors of one granule from a bitstream
-*/
+ * NAME:	III_scalefactors()
+ * DESCRIPTION:	decode channel scalefactors of one granule from a bitstream
+ */
 static
 unsigned int III_scalefactors(struct mad_bitptr *ptr, struct channel *channel,
-                              struct channel const *gr0ch, unsigned int scfsi)
+			      struct channel const *gr0ch, unsigned int scfsi)
 {
   struct mad_bitptr start;
   unsigned int slen1, slen2, sfbi;
-  stack(__FUNCTION__, __FILE__, __LINE__);
 
   start = *ptr;
 
@@ -776,38 +741,38 @@ unsigned int III_scalefactors(struct mad_bitptr *ptr, struct channel *channel,
   else {  /* channel->block_type != 2 */
     if (scfsi & 0x8) {
       for (sfbi = 0; sfbi < 6; ++sfbi)
-        channel->scalefac[sfbi] = gr0ch->scalefac[sfbi];
+	channel->scalefac[sfbi] = gr0ch->scalefac[sfbi];
     }
     else {
       for (sfbi = 0; sfbi < 6; ++sfbi)
-        channel->scalefac[sfbi] = mad_bit_read(ptr, slen1);
+	channel->scalefac[sfbi] = mad_bit_read(ptr, slen1);
     }
 
     if (scfsi & 0x4) {
       for (sfbi = 6; sfbi < 11; ++sfbi)
-        channel->scalefac[sfbi] = gr0ch->scalefac[sfbi];
+	channel->scalefac[sfbi] = gr0ch->scalefac[sfbi];
     }
     else {
       for (sfbi = 6; sfbi < 11; ++sfbi)
-        channel->scalefac[sfbi] = mad_bit_read(ptr, slen1);
+	channel->scalefac[sfbi] = mad_bit_read(ptr, slen1);
     }
 
     if (scfsi & 0x2) {
       for (sfbi = 11; sfbi < 16; ++sfbi)
-        channel->scalefac[sfbi] = gr0ch->scalefac[sfbi];
+	channel->scalefac[sfbi] = gr0ch->scalefac[sfbi];
     }
     else {
       for (sfbi = 11; sfbi < 16; ++sfbi)
-        channel->scalefac[sfbi] = mad_bit_read(ptr, slen2);
+	channel->scalefac[sfbi] = mad_bit_read(ptr, slen2);
     }
 
     if (scfsi & 0x1) {
       for (sfbi = 16; sfbi < 21; ++sfbi)
-        channel->scalefac[sfbi] = gr0ch->scalefac[sfbi];
+	channel->scalefac[sfbi] = gr0ch->scalefac[sfbi];
     }
     else {
       for (sfbi = 16; sfbi < 21; ++sfbi)
-        channel->scalefac[sfbi] = mad_bit_read(ptr, slen2);
+	channel->scalefac[sfbi] = mad_bit_read(ptr, slen2);
     }
 
     channel->scalefac[21] = 0;
@@ -817,38 +782,37 @@ unsigned int III_scalefactors(struct mad_bitptr *ptr, struct channel *channel,
 }
 
 /*
-   The Layer III formula for requantization and scaling is defined by
-   section 2.4.3.4.7.1 of ISO/IEC 11172-3, as follows:
-
-     long blocks:
-     xr[i] = sign(is[i]) * abs(is[i])^(4/3)
-             2^((1/4) * (global_gain - 210))
-             2^-(scalefac_multiplier
-                 (scalefac_l[sfb] + preflag * pretab[sfb]))
-
-     short blocks:
-     xr[i] = sign(is[i]) * abs(is[i])^(4/3)
-             2^((1/4) * (global_gain - 210 - 8 * subblock_gain[w]))
-             2^-(scalefac_multiplier * scalefac_s[sfb][w])
-
-     where:
-     scalefac_multiplier = (scalefac_scale + 1) / 2
-
-   The routines III_exponents() and III_requantize() facilitate this
-   calculation.
-*/
+ * The Layer III formula for requantization and scaling is defined by
+ * section 2.4.3.4.7.1 of ISO/IEC 11172-3, as follows:
+ *
+ *   long blocks:
+ *   xr[i] = sign(is[i]) * abs(is[i])^(4/3) *
+ *           2^((1/4) * (global_gain - 210)) *
+ *           2^-(scalefac_multiplier *
+ *               (scalefac_l[sfb] + preflag * pretab[sfb]))
+ *
+ *   short blocks:
+ *   xr[i] = sign(is[i]) * abs(is[i])^(4/3) *
+ *           2^((1/4) * (global_gain - 210 - 8 * subblock_gain[w])) *
+ *           2^-(scalefac_multiplier * scalefac_s[sfb][w])
+ *
+ *   where:
+ *   scalefac_multiplier = (scalefac_scale + 1) / 2
+ *
+ * The routines III_exponents() and III_requantize() facilitate this
+ * calculation.
+ */
 
 /*
-   NAME:	III_exponents()
-   DESCRIPTION:	calculate scalefactor exponents
-*/
+ * NAME:	III_exponents()
+ * DESCRIPTION:	calculate scalefactor exponents
+ */
 static
 void III_exponents(struct channel const *channel,
-                   unsigned int const *sfbwidth, signed int exponents[39])
+		   unsigned char const *sfbwidth, signed int exponents[39])
 {
   signed int gain;
   unsigned int scalefac_multiplier, sfbi;
-  stack(__FUNCTION__, __FILE__, __LINE__);
 
   gain = (signed int) channel->global_gain - 210;
   scalefac_multiplier = (channel->flags & scalefac_scale) ? 2 : 1;
@@ -867,11 +831,11 @@ void III_exponents(struct channel const *channel,
       /* long block subbands 0-1 */
 
       while (l < 36) {
-        exponents[sfbi] = gain -
-                          (signed int) ((channel->scalefac[sfbi] + (pretab[sfbi] & premask)) <<
-                                        scalefac_multiplier);
+	exponents[sfbi] = gain -
+	  (signed int) ((channel->scalefac[sfbi] + (pretab[sfbi] & premask)) <<
+			scalefac_multiplier);
 
-        l += sfbwidth[sfbi++];
+	l += sfbwidth[sfbi++];
       }
     }
 
@@ -883,11 +847,11 @@ void III_exponents(struct channel const *channel,
 
     while (l < 576) {
       exponents[sfbi + 0] = gain0 -
-                            (signed int) (channel->scalefac[sfbi + 0] << scalefac_multiplier);
+	(signed int) (channel->scalefac[sfbi + 0] << scalefac_multiplier);
       exponents[sfbi + 1] = gain1 -
-                            (signed int) (channel->scalefac[sfbi + 1] << scalefac_multiplier);
+	(signed int) (channel->scalefac[sfbi + 1] << scalefac_multiplier);
       exponents[sfbi + 2] = gain2 -
-                            (signed int) (channel->scalefac[sfbi + 2] << scalefac_multiplier);
+	(signed int) (channel->scalefac[sfbi + 2] << scalefac_multiplier);
 
       l    += 3 * sfbwidth[sfbi];
       sfbi += 3;
@@ -896,47 +860,40 @@ void III_exponents(struct channel const *channel,
   else {  /* channel->block_type != 2 */
     if (channel->flags & preflag) {
       for (sfbi = 0; sfbi < 22; ++sfbi) {
-        exponents[sfbi] = gain -
-                          (signed int) ((channel->scalefac[sfbi] + pretab[sfbi]) <<
-                                        scalefac_multiplier);
+	exponents[sfbi] = gain -
+	  (signed int) ((channel->scalefac[sfbi] + pretab[sfbi]) <<
+			scalefac_multiplier);
       }
     }
     else {
       for (sfbi = 0; sfbi < 22; ++sfbi) {
-        exponents[sfbi] = gain -
-                          (signed int) (channel->scalefac[sfbi] << scalefac_multiplier);
+	exponents[sfbi] = gain -
+	  (signed int) (channel->scalefac[sfbi] << scalefac_multiplier);
       }
     }
   }
 }
 
 /*
-   NAME:	III_requantize()
-   DESCRIPTION:	requantize one (positive) value
-*/
+ * NAME:	III_requantize()
+ * DESCRIPTION:	requantize one (positive) value
+ */
 static
 mad_fixed_t III_requantize(unsigned int value, signed int exp)
 {
   mad_fixed_t requantized;
   signed int frac;
-  struct fixedfloat power;
+  struct fixedfloat const *power;
 
-  stack(__FUNCTION__, __FILE__, __LINE__);
   frac = exp % 4;  /* assumes sign(frac) == sign(exp) */
   exp /= 4;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wstrict-aliasing"
-  *(uint32_t*)&power = *(uint32_t*)&rq_table[value]; //memcpy_P(&power, &rq_table[value], sizeof(power)); // Avoid byte access to PROGMEM
-#pragma GCC diagnostic pop
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wuninitialized"
-  requantized = power.mantissa;
-  exp += power.exponent;
-#pragma GCC diagnostic pop
+  power = &rq_table[value];
+  requantized = power->mantissa;
+  exp += power->exponent;
 
   if (exp < 0) {
-    if (-exp >= (int)(sizeof(mad_fixed_t) * CHAR_BIT)) {
+    if (-exp >= sizeof(mad_fixed_t) * CHAR_BIT) {
       /* underflow */
       requantized = 0;
     }
@@ -948,33 +905,34 @@ mad_fixed_t III_requantize(unsigned int value, signed int exp)
   else {
     if (exp >= 5) {
       /* overflow */
-# if 0 && defined(DEBUG)
+# if defined(DEBUG)
       fprintf(stderr, "requantize overflow (%f * 2^%d)\n",
-              mad_f_todouble(requantized), exp);
+	      mad_f_todouble(requantized), exp);
 # endif
       requantized = MAD_F_MAX;
     }
     else
       requantized <<= exp;
   }
-  return frac ? mad_f_mul(requantized, root_table(3 + frac)) : requantized;
+
+  return frac ? mad_f_mul(requantized, root_table[3 + frac]) : requantized;
 }
 
 /* we must take care that sz >= bits and sz < sizeof(long) lest bits == 0 */
 # define MASK(cache, sz, bits)	\
-  (((cache) >> ((sz) - (bits))) & ((1 << (bits)) - 1))
+    (((cache) >> ((sz) - (bits))) & ((1 << (bits)) - 1))
 # define MASK1BIT(cache, sz)  \
-  ((cache) & (1 << ((sz) - 1)))
+    ((cache) & (1 << ((sz) - 1)))
 
 /*
-   NAME:	III_huffdecode()
-   DESCRIPTION:	decode Huffman code words of one channel of one granule
-*/
+ * NAME:	III_huffdecode()
+ * DESCRIPTION:	decode Huffman code words of one channel of one granule
+ */
 static
 enum mad_error III_huffdecode(struct mad_bitptr *ptr, mad_fixed_t xr[576],
-                              struct channel *channel,
-                              unsigned int const *sfbwidth,
-                              unsigned int part2_length)
+			      struct channel *channel,
+			      unsigned char const *sfbwidth,
+			      unsigned int part2_length)
 {
   signed int exponents[39], exp;
   signed int const *expptr;
@@ -984,7 +942,6 @@ enum mad_error III_huffdecode(struct mad_bitptr *ptr, mad_fixed_t xr[576],
   mad_fixed_t const *sfbound;
   register unsigned long bitcache;
 
-  stack(__FUNCTION__, __FILE__, __LINE__);
   bits_left = (signed) channel->part2_3_length - (signed) part2_length;
   if (bits_left < 0)
     return MAD_ERROR_BADPART3LEN;
@@ -1034,40 +991,40 @@ enum mad_error III_huffdecode(struct mad_bitptr *ptr, mad_fixed_t xr[576],
       register mad_fixed_t requantized;
 
       if (xrptr == sfbound) {
-        sfbound += *sfbwidth++;
+	sfbound += *sfbwidth++;
 
-        /* change table if region boundary */
+	/* change table if region boundary */
 
-        if (--rcount == 0) {
-          if (region == 0)
-            rcount = channel->region1_count + 1;
-          else
-            rcount = 0;  /* all remaining */
+	if (--rcount == 0) {
+	  if (region == 0)
+	    rcount = channel->region1_count + 1;
+	  else
+	    rcount = 0;  /* all remaining */
 
-          entry     = &mad_huff_pair_table[channel->table_select[++region]];
-          table     = entry->table;
-          linbits   = entry->linbits;
-          startbits = entry->startbits;
+	  entry     = &mad_huff_pair_table[channel->table_select[++region]];
+	  table     = entry->table;
+	  linbits   = entry->linbits;
+	  startbits = entry->startbits;
 
-          if (table == 0)
-            return MAD_ERROR_BADHUFFTABLE;
-        }
+	  if (table == 0)
+	    return MAD_ERROR_BADHUFFTABLE;
+	}
 
-        if (exp != *expptr) {
-          exp = *expptr;
-          reqhits = 0;
-        }
+	if (exp != *expptr) {
+	  exp = *expptr;
+	  reqhits = 0;
+	}
 
-        ++expptr;
+	++expptr;
       }
 
       if (cachesz < 21) {
-        unsigned int bits;
+	unsigned int bits;
 
-        bits       = ((32 - 1 - 21) + (21 - cachesz)) & ~7;
-        bitcache   = (bitcache << bits) | mad_bit_read(&peek, bits);
-        cachesz   += bits;
-        bits_left -= bits;
+	bits       = ((32 - 1 - 21) + (21 - cachesz)) & ~7;
+	bitcache   = (bitcache << bits) | mad_bit_read(&peek, bits);
+	cachesz   += bits;
+	bits_left -= bits;
       }
 
       /* hcod (0..19) */
@@ -1076,121 +1033,121 @@ enum mad_error III_huffdecode(struct mad_bitptr *ptr, mad_fixed_t xr[576],
       pair    = &table[MASK(bitcache, cachesz, clumpsz)];
 
       while (!pair->final) {
-        cachesz -= clumpsz;
+	cachesz -= clumpsz;
 
-        clumpsz = pair->ptr.bits;
-        pair    = &table[pair->ptr.offset + MASK(bitcache, cachesz, clumpsz)];
+	clumpsz = pair->ptr.bits;
+	pair    = &table[pair->ptr.offset + MASK(bitcache, cachesz, clumpsz)];
       }
 
       cachesz -= pair->value.hlen;
 
       if (linbits) {
-        /* x (0..14) */
+	/* x (0..14) */
 
-        value = pair->value.x;
+	value = pair->value.x;
 
-        switch (value) {
-          case 0:
-            xrptr[0] = 0;
-            break;
+	switch (value) {
+	case 0:
+	  xrptr[0] = 0;
+	  break;
 
-          case 15:
-            if (cachesz < (int)(linbits + 2)) {
-              bitcache   = (bitcache << 16) | mad_bit_read(&peek, 16);
-              cachesz   += 16;
-              bits_left -= 16;
-            }
+	case 15:
+	  if (cachesz < linbits + 2) {
+	    bitcache   = (bitcache << 16) | mad_bit_read(&peek, 16);
+	    cachesz   += 16;
+	    bits_left -= 16;
+	  }
 
-            value += MASK(bitcache, cachesz, linbits);
-            cachesz -= linbits;
+	  value += MASK(bitcache, cachesz, linbits);
+	  cachesz -= linbits;
 
-            requantized = III_requantize(value, exp);
-            goto x_final;
+	  requantized = III_requantize(value, exp);
+	  goto x_final;
 
-          default:
-            if (reqhits & (1 << value))
-              requantized = reqcache[value];
-            else {
-              reqhits |= (1 << value);
-              requantized = reqcache[value] = III_requantize(value, exp);
-            }
+	default:
+	  if (reqhits & (1 << value))
+	    requantized = reqcache[value];
+	  else {
+	    reqhits |= (1 << value);
+	    requantized = reqcache[value] = III_requantize(value, exp);
+	  }
 
-x_final:
-            xrptr[0] = MASK1BIT(bitcache, cachesz--) ?
-                       -requantized : requantized;
-        }
+	x_final:
+	  xrptr[0] = MASK1BIT(bitcache, cachesz--) ?
+	    -requantized : requantized;
+	}
 
-        /* y (0..14) */
+	/* y (0..14) */
 
-        value = pair->value.y;
+	value = pair->value.y;
 
-        switch (value) {
-          case 0:
-            xrptr[1] = 0;
-            break;
+	switch (value) {
+	case 0:
+	  xrptr[1] = 0;
+	  break;
 
-          case 15:
-            if (cachesz < (int)(linbits + 1)) {
-              bitcache   = (bitcache << 16) | mad_bit_read(&peek, 16);
-              cachesz   += 16;
-              bits_left -= 16;
-            }
+	case 15:
+	  if (cachesz < linbits + 1) {
+	    bitcache   = (bitcache << 16) | mad_bit_read(&peek, 16);
+	    cachesz   += 16;
+	    bits_left -= 16;
+	  }
 
-            value += MASK(bitcache, cachesz, linbits);
-            cachesz -= linbits;
+	  value += MASK(bitcache, cachesz, linbits);
+	  cachesz -= linbits;
 
-            requantized = III_requantize(value, exp);
-            goto y_final;
+	  requantized = III_requantize(value, exp);
+	  goto y_final;
 
-          default:
-            if (reqhits & (1 << value))
-              requantized = reqcache[value];
-            else {
-              reqhits |= (1 << value);
-              requantized = reqcache[value] = III_requantize(value, exp);
-            }
+	default:
+	  if (reqhits & (1 << value))
+	    requantized = reqcache[value];
+	  else {
+	    reqhits |= (1 << value);
+	    requantized = reqcache[value] = III_requantize(value, exp);
+	  }
 
-y_final:
-            xrptr[1] = MASK1BIT(bitcache, cachesz--) ?
-                       -requantized : requantized;
-        }
+	y_final:
+	  xrptr[1] = MASK1BIT(bitcache, cachesz--) ?
+	    -requantized : requantized;
+	}
       }
       else {
-        /* x (0..1) */
+	/* x (0..1) */
 
-        value = pair->value.x;
+	value = pair->value.x;
 
-        if (value == 0)
-          xrptr[0] = 0;
-        else {
-          if (reqhits & (1 << value))
-            requantized = reqcache[value];
-          else {
-            reqhits |= (1 << value);
-            requantized = reqcache[value] = III_requantize(value, exp);
-          }
+	if (value == 0)
+	  xrptr[0] = 0;
+	else {
+	  if (reqhits & (1 << value))
+	    requantized = reqcache[value];
+	  else {
+	    reqhits |= (1 << value);
+	    requantized = reqcache[value] = III_requantize(value, exp);
+	  }
 
-          xrptr[0] = MASK1BIT(bitcache, cachesz--) ?
-                     -requantized : requantized;
-        }
+	  xrptr[0] = MASK1BIT(bitcache, cachesz--) ?
+	    -requantized : requantized;
+	}
 
-        /* y (0..1) */
+	/* y (0..1) */
 
-        value = pair->value.y;
+	value = pair->value.y;
 
-        if (value == 0)
-          xrptr[1] = 0;
-        else {
-          if (reqhits & (1 << value))
-            requantized = reqcache[value];
-          else {
-            reqhits |= (1 << value);
-            requantized = reqcache[value] = III_requantize(value, exp);
-          }
+	if (value == 0)
+	  xrptr[1] = 0;
+	else {
+	  if (reqhits & (1 << value))
+	    requantized = reqcache[value];
+	  else {
+	    reqhits |= (1 << value);
+	    requantized = reqcache[value] = III_requantize(value, exp);
+	  }
 
-          xrptr[1] = MASK1BIT(bitcache, cachesz--) ?
-                     -requantized : requantized;
-        }
+	  xrptr[1] = MASK1BIT(bitcache, cachesz--) ?
+	    -requantized : requantized;
+	}
       }
 
       xrptr += 2;
@@ -1215,66 +1172,66 @@ y_final:
       /* hcod (1..6) */
 
       if (cachesz < 10) {
-        bitcache   = (bitcache << 16) | mad_bit_read(&peek, 16);
-        cachesz   += 16;
-        bits_left -= 16;
+	bitcache   = (bitcache << 16) | mad_bit_read(&peek, 16);
+	cachesz   += 16;
+	bits_left -= 16;
       }
 
       quad = &table[MASK(bitcache, cachesz, 4)];
 
       /* quad tables guaranteed to have at most one extra lookup */
       if (!quad->final) {
-        cachesz -= 4;
+	cachesz -= 4;
 
-        quad = &table[quad->ptr.offset +
-                      MASK(bitcache, cachesz, quad->ptr.bits)];
+	quad = &table[quad->ptr.offset +
+		      MASK(bitcache, cachesz, quad->ptr.bits)];
       }
 
       cachesz -= quad->value.hlen;
 
       if (xrptr == sfbound) {
-        sfbound += *sfbwidth++;
+	sfbound += *sfbwidth++;
 
-        if (exp != *expptr) {
-          exp = *expptr;
-          requantized = III_requantize(1, exp);
-        }
+	if (exp != *expptr) {
+	  exp = *expptr;
+	  requantized = III_requantize(1, exp);
+	}
 
-        ++expptr;
+	++expptr;
       }
 
       /* v (0..1) */
 
       xrptr[0] = quad->value.v ?
-                 (MASK1BIT(bitcache, cachesz--) ? -requantized : requantized) : 0;
+	(MASK1BIT(bitcache, cachesz--) ? -requantized : requantized) : 0;
 
       /* w (0..1) */
 
       xrptr[1] = quad->value.w ?
-                 (MASK1BIT(bitcache, cachesz--) ? -requantized : requantized) : 0;
+	(MASK1BIT(bitcache, cachesz--) ? -requantized : requantized) : 0;
 
       xrptr += 2;
 
       if (xrptr == sfbound) {
-        sfbound += *sfbwidth++;
+	sfbound += *sfbwidth++;
 
-        if (exp != *expptr) {
-          exp = *expptr;
-          requantized = III_requantize(1, exp);
-        }
+	if (exp != *expptr) {
+	  exp = *expptr;
+	  requantized = III_requantize(1, exp);
+	}
 
-        ++expptr;
+	++expptr;
       }
 
       /* x (0..1) */
 
       xrptr[0] = quad->value.x ?
-                 (MASK1BIT(bitcache, cachesz--) ? -requantized : requantized) : 0;
+	(MASK1BIT(bitcache, cachesz--) ? -requantized : requantized) : 0;
 
       /* y (0..1) */
 
       xrptr[1] = quad->value.y ?
-                 (MASK1BIT(bitcache, cachesz--) ? -requantized : requantized) : 0;
+	(MASK1BIT(bitcache, cachesz--) ? -requantized : requantized) : 0;
 
       xrptr += 2;
     }
@@ -1282,11 +1239,11 @@ y_final:
     if (cachesz + bits_left < 0) {
 # if 0 && defined(DEBUG)
       fprintf(stderr, "huffman count1 overrun (%d bits)\n",
-              -(cachesz + bits_left));
+	      -(cachesz + bits_left));
 # endif
 
       /* technically the bitstream is misformatted, but apparently
-        some encoders are just a bit sloppy with stuffing bits */
+	 some encoders are just a bit sloppy with stuffing bits */
 
       xrptr -= 4;
     }
@@ -1316,26 +1273,15 @@ y_final:
 # undef MASK1BIT
 
 /*
-   NAME:	III_reorder()
-   DESCRIPTION:	reorder frequency lines of a short block into subband order
-*/
+ * NAME:	III_reorder()
+ * DESCRIPTION:	reorder frequency lines of a short block into subband order
+ */
 static
-enum mad_error III_reorder(mad_fixed_t xr[576], struct channel const *channel,
-                 unsigned int const sfbwidth[39], mad_fixed_t tmp[576])
+void III_reorder(mad_fixed_t xr[576], struct channel const *channel,
+		 unsigned char const sfbwidth[39])
 {
+  mad_fixed_t tmp[32][3][6];
   unsigned int sb, l, f, w, sbw[3], sw[3];
-//  mad_fixed_t *tmp; // [32][3][6]
-  // See if we can allocate this buffer on the stack and save heap
-//  char onstack = 0;
-//  if (stackfree() > (int)(100 + sizeof(mad_fixed_t)*32*3*6)) {
-//    onstack = 1;
-//    tmp = alloca(sizeof(mad_fixed_t)*32*3*6);
-//  } else {
-//    tmp = (mad_fixed_t*)malloc(sizeof(mad_fixed_t)*32*3*6);
-//    if (!tmp) return MAD_ERROR_NOMEM;
-//  }
-
-  stack(__FUNCTION__, __FILE__, __LINE__);
 
   /* this is probably wrong for 8000 Hz mixed blocks */
 
@@ -1362,7 +1308,7 @@ enum mad_error III_reorder(mad_fixed_t xr[576], struct channel const *channel,
       w = (w + 1) % 3;
     }
 
-    tmp[ (sbw[w]*3*6) + (w*6) + (sw[w]++) ] = xr[l];
+    tmp[sbw[w]][w][sw[w]++] = xr[l];
 
     if (sw[w] == 6) {
       sw[w] = 0;
@@ -1370,26 +1316,21 @@ enum mad_error III_reorder(mad_fixed_t xr[576], struct channel const *channel,
     }
   }
 
-  memcpy(&xr[18 * sb], &tmp[sb * 3 * 6], (576 - 18 * sb) * sizeof(mad_fixed_t));
-
-//  if (!onstack) free(tmp);
-//  // If it's on the stack, it'll go away on the return
-  return MAD_ERROR_NONE;
+  memcpy(&xr[18 * sb], &tmp[sb], (576 - 18 * sb) * sizeof(mad_fixed_t));
 }
 
 /*
-   NAME:	III_stereo()
-   DESCRIPTION:	perform joint stereo processing on a granule
-*/
+ * NAME:	III_stereo()
+ * DESCRIPTION:	perform joint stereo processing on a granule
+ */
 static
 enum mad_error III_stereo(mad_fixed_t xr[2][576],
-                          struct granule const *granule,
-                          struct mad_header *header,
-                          unsigned int const *sfbwidth)
+			  struct granule const *granule,
+			  struct mad_header *header,
+			  unsigned char const *sfbwidth)
 {
   short modes[39];
   unsigned int sfbi, l, n, i;
-  stack(__FUNCTION__, __FILE__, __LINE__);
 
   if (granule->ch[0].block_type !=
       granule->ch[1].block_type ||
@@ -1419,55 +1360,55 @@ enum mad_error III_stereo(mad_fixed_t xr[2][576],
       sfbi = l = 0;
 
       if (right_ch->flags & mixed_block_flag) {
-        while (l < 36) {
-          n = sfbwidth[sfbi++];
+	while (l < 36) {
+	  n = sfbwidth[sfbi++];
 
-          for (i = 0; i < n; ++i) {
-            if (right_xr[i]) {
-              lower = sfbi;
-              break;
-            }
-          }
+	  for (i = 0; i < n; ++i) {
+	    if (right_xr[i]) {
+	      lower = sfbi;
+	      break;
+	    }
+	  }
 
-          right_xr += n;
-          l += n;
-        }
+	  right_xr += n;
+	  l += n;
+	}
 
-        start = sfbi;
+	start = sfbi;
       }
 
       w = 0;
       while (l < 576) {
-        n = sfbwidth[sfbi++];
+	n = sfbwidth[sfbi++];
 
-        for (i = 0; i < n; ++i) {
-          if (right_xr[i]) {
-            max = bound[w] = sfbi;
-            break;
-          }
-        }
+	for (i = 0; i < n; ++i) {
+	  if (right_xr[i]) {
+	    max = bound[w] = sfbi;
+	    break;
+	  }
+	}
 
-        right_xr += n;
-        l += n;
-        w = (w + 1) % 3;
+	right_xr += n;
+	l += n;
+	w = (w + 1) % 3;
       }
 
       if (max)
-        lower = start;
+	lower = start;
 
       /* long blocks */
 
       for (i = 0; i < lower; ++i)
-        modes[i] = header->mode_extension & ~I_STEREO;
+	modes[i] = header->mode_extension & ~I_STEREO;
 
       /* short blocks */
 
       w = 0;
       for (i = start; i < max; ++i) {
-        if (i < bound[w])
-          modes[i] = header->mode_extension & ~I_STEREO;
+	if (i < bound[w])
+	  modes[i] = header->mode_extension & ~I_STEREO;
 
-        w = (w + 1) % 3;
+	w = (w + 1) % 3;
       }
     }
     else {  /* right_ch->block_type != 2 */
@@ -1475,20 +1416,20 @@ enum mad_error III_stereo(mad_fixed_t xr[2][576],
 
       bound = 0;
       for (sfbi = l = 0; l < 576; l += n) {
-        n = sfbwidth[sfbi++];
+	n = sfbwidth[sfbi++];
 
-        for (i = 0; i < n; ++i) {
-          if (right_xr[i]) {
-            bound = sfbi;
-            break;
-          }
-        }
+	for (i = 0; i < n; ++i) {
+	  if (right_xr[i]) {
+	    bound = sfbi;
+	    break;
+	  }
+	}
 
-        right_xr += n;
+	right_xr += n;
       }
 
       for (i = 0; i < bound; ++i)
-        modes[i] = header->mode_extension & ~I_STEREO;
+	modes[i] = header->mode_extension & ~I_STEREO;
     }
 
     /* now do the actual processing */
@@ -1501,62 +1442,62 @@ enum mad_error III_stereo(mad_fixed_t xr[2][576],
       lsf_scale = is_lsf_table[right_ch->scalefac_compress & 0x1];
 
       for (sfbi = l = 0; l < 576; ++sfbi, l += n) {
-        n = sfbwidth[sfbi];
+	n = sfbwidth[sfbi];
 
-        if (!(modes[sfbi] & I_STEREO))
-          continue;
+	if (!(modes[sfbi] & I_STEREO))
+	  continue;
 
-        if (illegal_pos[sfbi]) {
-          modes[sfbi] &= ~I_STEREO;
-          continue;
-        }
+	if (illegal_pos[sfbi]) {
+	  modes[sfbi] &= ~I_STEREO;
+	  continue;
+	}
 
-        is_pos = right_ch->scalefac[sfbi];
+	is_pos = right_ch->scalefac[sfbi];
 
-        for (i = 0; i < n; ++i) {
-          register mad_fixed_t left;
+	for (i = 0; i < n; ++i) {
+	  register mad_fixed_t left;
 
-          left = xr[0][l + i];
+	  left = xr[0][l + i];
 
-          if (is_pos == 0)
-            xr[1][l + i] = left;
-          else {
-            register mad_fixed_t opposite;
+	  if (is_pos == 0)
+	    xr[1][l + i] = left;
+	  else {
+	    register mad_fixed_t opposite;
 
-            opposite = mad_f_mul(left, lsf_scale[(is_pos - 1) / 2]);
+	    opposite = mad_f_mul(left, lsf_scale[(is_pos - 1) / 2]);
 
-            if (is_pos & 1) {
-              xr[0][l + i] = opposite;
-              xr[1][l + i] = left;
-            }
-            else
-              xr[1][l + i] = opposite;
-          }
-        }
+	    if (is_pos & 1) {
+	      xr[0][l + i] = opposite;
+	      xr[1][l + i] = left;
+	    }
+	    else
+	      xr[1][l + i] = opposite;
+	  }
+	}
       }
     }
     else {  /* !(header->flags & MAD_FLAG_LSF_EXT) */
       for (sfbi = l = 0; l < 576; ++sfbi, l += n) {
-        n = sfbwidth[sfbi];
+	n = sfbwidth[sfbi];
 
-        if (!(modes[sfbi] & I_STEREO))
-          continue;
+	if (!(modes[sfbi] & I_STEREO))
+	  continue;
 
-        is_pos = right_ch->scalefac[sfbi];
+	is_pos = right_ch->scalefac[sfbi];
 
-        if (is_pos >= 7) {  /* illegal intensity position */
-          modes[sfbi] &= ~I_STEREO;
-          continue;
-        }
+	if (is_pos >= 7) {  /* illegal intensity position */
+	  modes[sfbi] &= ~I_STEREO;
+	  continue;
+	}
 
-        for (i = 0; i < n; ++i) {
-          register mad_fixed_t left;
+	for (i = 0; i < n; ++i) {
+	  register mad_fixed_t left;
 
-          left = xr[0][l + i];
+	  left = xr[0][l + i];
 
-          xr[0][l + i] = mad_f_mul(left, is_table(    is_pos));
-          xr[1][l + i] = mad_f_mul(left, is_table(6 - is_pos));
-        }
+	  xr[0][l + i] = mad_f_mul(left, is_table[    is_pos]);
+	  xr[1][l + i] = mad_f_mul(left, is_table[6 - is_pos]);
+	}
       }
     }
   }
@@ -1568,22 +1509,22 @@ enum mad_error III_stereo(mad_fixed_t xr[2][576],
 
     header->flags |= MAD_FLAG_MS_STEREO;
 
-    invsqrt2 = root_table(3 + -2);
+    invsqrt2 = root_table[3 + -2];
 
     for (sfbi = l = 0; l < 576; ++sfbi, l += n) {
       n = sfbwidth[sfbi];
 
       if (modes[sfbi] != MS_STEREO)
-        continue;
+	continue;
 
       for (i = 0; i < n; ++i) {
-        register mad_fixed_t m, s;
+	register mad_fixed_t m, s;
 
-        m = xr[0][l + i];
-        s = xr[1][l + i];
+	m = xr[0][l + i];
+	s = xr[1][l + i];
 
-        xr[0][l + i] = mad_f_mul(m + s, invsqrt2);  /* l = (m + s) / sqrt(2) */
-        xr[1][l + i] = mad_f_mul(m - s, invsqrt2);  /* r = (m - s) / sqrt(2) */
+	xr[0][l + i] = mad_f_mul(m + s, invsqrt2);  /* l = (m + s) / sqrt(2) */
+	xr[1][l + i] = mad_f_mul(m - s, invsqrt2);  /* r = (m - s) / sqrt(2) */
       }
     }
   }
@@ -1592,15 +1533,14 @@ enum mad_error III_stereo(mad_fixed_t xr[2][576],
 }
 
 /*
-   NAME:	III_aliasreduce()
-   DESCRIPTION:	perform frequency line alias reduction
-*/
+ * NAME:	III_aliasreduce()
+ * DESCRIPTION:	perform frequency line alias reduction
+ */
 static
 void III_aliasreduce(mad_fixed_t xr[576], int lines)
 {
   mad_fixed_t const *bound;
   int i;
-  stack(__FUNCTION__, __FILE__, __LINE__);
 
   bound = &xr[lines];
   for (xr += 18; xr < bound; xr += 18) {
@@ -1615,15 +1555,15 @@ void III_aliasreduce(mad_fixed_t xr[576], int lines)
 # if defined(ASO_ZEROCHECK)
       if (a | b) {
 # endif
-        MAD_F_ML0(hi, lo,  a, cs(i));
-        MAD_F_MLA(hi, lo, -b, ca(i));
+	MAD_F_ML0(hi, lo,  a, cs[i]);
+	MAD_F_MLA(hi, lo, -b, ca[i]);
 
-        xr[-1 - i] = MAD_F_MLZ(hi, lo);
+	xr[-1 - i] = MAD_F_MLZ(hi, lo);
 
-        MAD_F_ML0(hi, lo,  b, cs(i));
-        MAD_F_MLA(hi, lo,  a, ca(i));
+	MAD_F_ML0(hi, lo,  b, cs[i]);
+	MAD_F_MLA(hi, lo,  a, ca[i]);
 
-        xr[     i] = MAD_F_MLZ(hi, lo);
+	xr[     i] = MAD_F_MLZ(hi, lo);
 # if defined(ASO_ZEROCHECK)
       }
 # endif
@@ -1708,10 +1648,9 @@ void sdctII(mad_fixed_t const x[18], mad_fixed_t X[18])
 {
   mad_fixed_t tmp[9];
   int i;
-  stack(__FUNCTION__, __FILE__, __LINE__);
 
   /* scale[i] = 2 * cos(PI * (2 * i + 1) / (2 * 18)) */
-  static mad_fixed_t const scale[9] PROGMEM = {
+  static mad_fixed_t const scale[9] = {
     MAD_F(0x1fe0d3b4), MAD_F(0x1ee8dd47), MAD_F(0x1d007930),
     MAD_F(0x1a367e59), MAD_F(0x16a09e66), MAD_F(0x125abcf8),
     MAD_F(0x0d8616bc), MAD_F(0x08483ee1), MAD_F(0x02c9fad7)
@@ -1732,10 +1671,9 @@ void sdctII(mad_fixed_t const x[18], mad_fixed_t X[18])
   /* odd input butterfly and scaling */
 
   for (i = 0; i < 9; i += 3) {
-    mad_fixed_t s;
-    s = *(volatile mad_fixed_t*)(volatile uint32_t*)&scale[i + 0]; tmp[i + 0] = mad_f_mul(x[i + 0] - x[18 - (i + 0) - 1], s); //scale[i + 0]);
-    s = *(volatile mad_fixed_t*)(volatile uint32_t*)&scale[i + 1]; tmp[i + 1] = mad_f_mul(x[i + 1] - x[18 - (i + 1) - 1], s); //scale[i + 1]);
-    s = *(volatile mad_fixed_t*)(volatile uint32_t*)&scale[i + 2]; tmp[i + 2] = mad_f_mul(x[i + 2] - x[18 - (i + 2) - 1], s); //scale[i + 2]);
+    tmp[i + 0] = mad_f_mul(x[i + 0] - x[18 - (i + 0) - 1], scale[i + 0]);
+    tmp[i + 1] = mad_f_mul(x[i + 1] - x[18 - (i + 1) - 1], scale[i + 1]);
+    tmp[i + 2] = mad_f_mul(x[i + 2] - x[18 - (i + 2) - 1], scale[i + 2]);
   }
 
   fastsdct(tmp, &X[1]);
@@ -1755,10 +1693,9 @@ void dctIV(mad_fixed_t const y[18], mad_fixed_t X[18])
 {
   mad_fixed_t tmp[18];
   int i;
-  stack(__FUNCTION__, __FILE__, __LINE__);
 
   /* scale[i] = 2 * cos(PI * (2 * i + 1) / (4 * 18)) */
-  static mad_fixed_t const scale[18] PROGMEM = {
+  static mad_fixed_t const scale[18] = {
     MAD_F(0x1ff833fa), MAD_F(0x1fb9ea93), MAD_F(0x1f3dd120),
     MAD_F(0x1e84d969), MAD_F(0x1d906bcf), MAD_F(0x1c62648b),
     MAD_F(0x1afd100f), MAD_F(0x1963268b), MAD_F(0x1797c6a4),
@@ -1770,10 +1707,9 @@ void dctIV(mad_fixed_t const y[18], mad_fixed_t X[18])
   /* scaling */
 
   for (i = 0; i < 18; i += 3) {
-    mad_fixed_t s;
-    s = *(volatile mad_fixed_t*)(volatile uint32_t*)&scale[i + 0]; tmp[i + 0] = mad_f_mul(y[i + 0], s); //scale[i + 0]);
-    s = *(volatile mad_fixed_t*)(volatile uint32_t*)&scale[i + 1]; tmp[i + 1] = mad_f_mul(y[i + 1], s); //scale[i + 1]);
-    s = *(volatile mad_fixed_t*)(volatile uint32_t*)&scale[i + 2]; tmp[i + 2] = mad_f_mul(y[i + 2], s); //scale[i + 2]);
+    tmp[i + 0] = mad_f_mul(y[i + 0], scale[i + 0]);
+    tmp[i + 1] = mad_f_mul(y[i + 1], scale[i + 1]);
+    tmp[i + 2] = mad_f_mul(y[i + 2], scale[i + 2]);
   }
 
   /* SDCT-II */
@@ -1793,15 +1729,14 @@ void dctIV(mad_fixed_t const y[18], mad_fixed_t X[18])
 }
 
 /*
-   NAME:	imdct36
-   DESCRIPTION:	perform X[18]->x[36] IMDCT using Szu-Wei Lee's fast algorithm
-*/
+ * NAME:	imdct36
+ * DESCRIPTION:	perform X[18]->x[36] IMDCT using Szu-Wei Lee's fast algorithm
+ */
 static inline
 void imdct36(mad_fixed_t const x[18], mad_fixed_t y[36])
 {
   mad_fixed_t tmp[18];
   int i;
-  stack(__FUNCTION__, __FILE__, __LINE__);
 
   /* DCT-IV */
 
@@ -1827,9 +1762,9 @@ void imdct36(mad_fixed_t const x[18], mad_fixed_t y[36])
 }
 #  else
 /*
-   NAME:	imdct36
-   DESCRIPTION:	perform X[18]->x[36] IMDCT
-*/
+ * NAME:	imdct36
+ * DESCRIPTION:	perform X[18]->x[36] IMDCT
+ */
 static inline
 void imdct36(mad_fixed_t const X[18], mad_fixed_t x[36])
 {
@@ -2119,15 +2054,14 @@ void imdct36(mad_fixed_t const X[18], mad_fixed_t x[36])
 #  endif
 
 /*
-   NAME:	III_imdct_l()
-   DESCRIPTION:	perform IMDCT and windowing for long blocks
-*/
+ * NAME:	III_imdct_l()
+ * DESCRIPTION:	perform IMDCT and windowing for long blocks
+ */
 static
 void III_imdct_l(mad_fixed_t const X[18], mad_fixed_t z[36],
-                 unsigned int block_type)
+		 unsigned int block_type)
 {
   unsigned int i;
-  stack(__FUNCTION__, __FILE__, __LINE__);
 
   /* IMDCT */
 
@@ -2136,101 +2070,97 @@ void III_imdct_l(mad_fixed_t const X[18], mad_fixed_t z[36],
   /* windowing */
 
   switch (block_type) {
-    case 0:  /* normal window */
+  case 0:  /* normal window */
 # if defined(ASO_INTERLEAVE1)
-      {
-        register mad_fixed_t tmp1, tmp2;
+    {
+      register mad_fixed_t tmp1, tmp2;
 
-        tmp1 = window_l[0];
-        tmp2 = window_l[1];
+      tmp1 = window_l[0];
+      tmp2 = window_l[1];
 
-        for (i = 0; i < 34; i += 2) {
-          z[i + 0] = mad_f_mul(z[i + 0], tmp1);
-          tmp1 = window_l[i + 2];
-          z[i + 1] = mad_f_mul(z[i + 1], tmp2);
-          tmp2 = window_l[i + 3];
-        }
-
-        z[34] = mad_f_mul(z[34], tmp1);
-        z[35] = mad_f_mul(z[35], tmp2);
+      for (i = 0; i < 34; i += 2) {
+	z[i + 0] = mad_f_mul(z[i + 0], tmp1);
+	tmp1 = window_l[i + 2];
+	z[i + 1] = mad_f_mul(z[i + 1], tmp2);
+	tmp2 = window_l[i + 3];
       }
+
+      z[34] = mad_f_mul(z[34], tmp1);
+      z[35] = mad_f_mul(z[35], tmp2);
+    }
 # elif defined(ASO_INTERLEAVE2)
-      {
-        register mad_fixed_t tmp1, tmp2;
+    {
+      register mad_fixed_t tmp1, tmp2;
 
-        tmp1 = z[0];
-        tmp2 = window_l[0];
+      tmp1 = z[0];
+      tmp2 = window_l[0];
 
-        for (i = 0; i < 35; ++i) {
-          z[i] = mad_f_mul(tmp1, tmp2);
-          tmp1 = z[i + 1];
-          tmp2 = window_l[i + 1];
-        }
-
-        z[35] = mad_f_mul(tmp1, tmp2);
+      for (i = 0; i < 35; ++i) {
+	z[i] = mad_f_mul(tmp1, tmp2);
+	tmp1 = z[i + 1];
+	tmp2 = window_l[i + 1];
       }
+
+      z[35] = mad_f_mul(tmp1, tmp2);
+    }
 # elif 1
-      for (i = 0; i < 36; i += 4) {
-        z[i + 0] = mad_f_mul(z[i + 0], window_l(i + 0));
-        z[i + 1] = mad_f_mul(z[i + 1], window_l(i + 1));
-        z[i + 2] = mad_f_mul(z[i + 2], window_l(i + 2));
-        z[i + 3] = mad_f_mul(z[i + 3], window_l(i + 3));
-      }
+    for (i = 0; i < 36; i += 4) {
+      z[i + 0] = mad_f_mul(z[i + 0], window_l[i + 0]);
+      z[i + 1] = mad_f_mul(z[i + 1], window_l[i + 1]);
+      z[i + 2] = mad_f_mul(z[i + 2], window_l[i + 2]);
+      z[i + 3] = mad_f_mul(z[i + 3], window_l[i + 3]);
+    }
 # else
-      for (i =  0; i < 36; ++i) z[i] = mad_f_mul(z[i], window_l[i]);
+    for (i =  0; i < 36; ++i) z[i] = mad_f_mul(z[i], window_l[i]);
 # endif
-      break;
+    break;
 
-    case 1:  /* start block */
-      for (i =  0; i < 18; i += 3) {
-        z[i + 0] = mad_f_mul(z[i + 0], window_l(i + 0));
-        z[i + 1] = mad_f_mul(z[i + 1], window_l(i + 1));
-        z[i + 2] = mad_f_mul(z[i + 2], window_l(i + 2));
-      }
-      /*  (i = 18; i < 24; ++i) z[i] unchanged */
-      for (i = 24; i < 30; ++i) z[i] = mad_f_mul(z[i], window_s(i - 18));
-      for (i = 30; i < 36; ++i) z[i] = 0;
-      break;
+  case 1:  /* start block */
+    for (i =  0; i < 18; i += 3) {
+      z[i + 0] = mad_f_mul(z[i + 0], window_l[i + 0]);
+      z[i + 1] = mad_f_mul(z[i + 1], window_l[i + 1]);
+      z[i + 2] = mad_f_mul(z[i + 2], window_l[i + 2]);
+    }
+    /*  (i = 18; i < 24; ++i) z[i] unchanged */
+    for (i = 24; i < 30; ++i) z[i] = mad_f_mul(z[i], window_s[i - 18]);
+    for (i = 30; i < 36; ++i) z[i] = 0;
+    break;
 
-    case 3:  /* stop block */
-      for (i =  0; i <  6; ++i) z[i] = 0;
-      for (i =  6; i < 12; ++i) z[i] = mad_f_mul(z[i], window_s(i - 6));
-      /*  (i = 12; i < 18; ++i) z[i] unchanged */
-      for (i = 18; i < 36; i += 3) {
-        z[i + 0] = mad_f_mul(z[i + 0], window_l(i + 0));
-        z[i + 1] = mad_f_mul(z[i + 1], window_l(i + 1));
-        z[i + 2] = mad_f_mul(z[i + 2], window_l(i + 2));
-      }
-      break;
+  case 3:  /* stop block */
+    for (i =  0; i <  6; ++i) z[i] = 0;
+    for (i =  6; i < 12; ++i) z[i] = mad_f_mul(z[i], window_s[i - 6]);
+    /*  (i = 12; i < 18; ++i) z[i] unchanged */
+    for (i = 18; i < 36; i += 3) {
+      z[i + 0] = mad_f_mul(z[i + 0], window_l[i + 0]);
+      z[i + 1] = mad_f_mul(z[i + 1], window_l[i + 1]);
+      z[i + 2] = mad_f_mul(z[i + 2], window_l[i + 2]);
+    }
+    break;
   }
 }
 # endif  /* ASO_IMDCT */
 
 /*
-   NAME:	III_imdct_s()
-   DESCRIPTION:	perform IMDCT and windowing for short blocks
-*/
+ * NAME:	III_imdct_s()
+ * DESCRIPTION:	perform IMDCT and windowing for short blocks
+ */
 static
 void III_imdct_s(mad_fixed_t const X[18], mad_fixed_t z[36])
 {
   mad_fixed_t y[36], *yptr;
-  int wptr; //mad_fixed_t const *wptr;
+  mad_fixed_t const *wptr;
   int w, i;
   register mad_fixed64hi_t hi;
   register mad_fixed64lo_t lo;
-  // MAD_F_MLA may produce non-32b aligned reads, so copy from progmem to stack and work from there...
-  mad_fixed_t imdct_s_lcl[6][6];
-  memcpy_P(imdct_s_lcl, imdct_s, sizeof(imdct_s));
-  stack(__FUNCTION__, __FILE__, __LINE__);
 
   /* IMDCT */
 
   yptr = &y[0];
 
   for (w = 0; w < 3; ++w) {
-    register mad_fixed_t (*s)[6];
+    register mad_fixed_t const (*s)[6];
 
-    s = imdct_s_lcl;
+    s = imdct_s;
 
     for (i = 0; i < 3; ++i) {
       MAD_F_ML0(hi, lo, X[0], (*s)[0]);
@@ -2265,23 +2195,23 @@ void III_imdct_s(mad_fixed_t const X[18], mad_fixed_t z[36])
   /* windowing, overlapping and concatenation */
 
   yptr = &y[0];
-  wptr = 0; //wptr = &window_s[0];
+  wptr = &window_s[0];
 
   for (i = 0; i < 6; ++i) {
     z[i +  0] = 0;
-    z[i +  6] = mad_f_mul(yptr[ 0 + 0], window_s(wptr + 0));
+    z[i +  6] = mad_f_mul(yptr[ 0 + 0], wptr[0]);
 
-    MAD_F_ML0(hi, lo, yptr[ 0 + 6], window_s(wptr + 6));
-    MAD_F_MLA(hi, lo, yptr[12 + 0], window_s(wptr + 0));
+    MAD_F_ML0(hi, lo, yptr[ 0 + 6], wptr[6]);
+    MAD_F_MLA(hi, lo, yptr[12 + 0], wptr[0]);
 
     z[i + 12] = MAD_F_MLZ(hi, lo);
 
-    MAD_F_ML0(hi, lo, yptr[12 + 6], window_s(wptr + 6));
-    MAD_F_MLA(hi, lo, yptr[24 + 0], window_s(wptr + 0));
+    MAD_F_ML0(hi, lo, yptr[12 + 6], wptr[6]);
+    MAD_F_MLA(hi, lo, yptr[24 + 0], wptr[0]);
 
     z[i + 18] = MAD_F_MLZ(hi, lo);
 
-    z[i + 24] = mad_f_mul(yptr[24 + 6], window_s(wptr + 6));
+    z[i + 24] = mad_f_mul(yptr[24 + 6], wptr[6]);
     z[i + 30] = 0;
 
     ++yptr;
@@ -2290,15 +2220,14 @@ void III_imdct_s(mad_fixed_t const X[18], mad_fixed_t z[36])
 }
 
 /*
-   NAME:	III_overlap()
-   DESCRIPTION:	perform overlap-add of windowed IMDCT outputs
-*/
+ * NAME:	III_overlap()
+ * DESCRIPTION:	perform overlap-add of windowed IMDCT outputs
+ */
 static
 void III_overlap(mad_fixed_t const output[36], mad_fixed_t overlap[18],
-                 mad_fixed_t sample[18][32], unsigned int sb)
+		 mad_fixed_t sample[18][32], unsigned int sb)
 {
   unsigned int i;
-  stack(__FUNCTION__, __FILE__, __LINE__);
 
 # if defined(ASO_INTERLEAVE2)
   {
@@ -2339,12 +2268,12 @@ void III_overlap(mad_fixed_t const output[36], mad_fixed_t overlap[18],
 }
 
 /*
-   NAME:	III_overlap_z()
-   DESCRIPTION:	perform "overlap-add" of zero IMDCT outputs
-*/
+ * NAME:	III_overlap_z()
+ * DESCRIPTION:	perform "overlap-add" of zero IMDCT outputs
+ */
 static inline
 void III_overlap_z(mad_fixed_t overlap[18],
-                   mad_fixed_t sample[18][32], unsigned int sb)
+		   mad_fixed_t sample[18][32], unsigned int sb)
 {
   unsigned int i;
 
@@ -2379,14 +2308,13 @@ void III_overlap_z(mad_fixed_t overlap[18],
 }
 
 /*
-   NAME:	III_freqinver()
-   DESCRIPTION:	perform subband frequency inversion for odd sample lines
-*/
+ * NAME:	III_freqinver()
+ * DESCRIPTION:	perform subband frequency inversion for odd sample lines
+ */
 static
 void III_freqinver(mad_fixed_t sample[18][32], unsigned int sb)
 {
   unsigned int i;
-  stack(__FUNCTION__, __FILE__, __LINE__);
 
 # if 1 || defined(ASO_INTERLEAVE1) || defined(ASO_INTERLEAVE2)
   {
@@ -2414,24 +2342,16 @@ void III_freqinver(mad_fixed_t sample[18][32], unsigned int sb)
 }
 
 /*
-   NAME:	III_decode()
-   DESCRIPTION:	decode frame main_data
-*/
+ * NAME:	III_decode()
+ * DESCRIPTION:	decode frame main_data
+ */
 static
 enum mad_error III_decode(struct mad_bitptr *ptr, struct mad_frame *frame,
-                          struct sideinfo *si, unsigned int nch)
+			  struct sideinfo *si, unsigned int nch)
 {
   struct mad_header *header = &frame->header;
-  mad_fixed_t *xr[2]; // Moved from stack to dynheap
-//  mad_fixed_t *xr_raw; // [2][576]
   unsigned int sfreqi, ngr, gr;
-//  xr_raw = (mad_fixed_t*)malloc(sizeof(mad_fixed_t) * 2 * 576);
-//  if (!xr_raw)
-//    return MAD_ERROR_NOMEM;
-  xr[0] = frame->xr_raw; //xr_raw;
-  xr[1] = frame->xr_raw + 576; //xr_raw + 576;
 
-  stack(__FUNCTION__, __FILE__, __LINE__);
   {
     unsigned int sfreq;
 
@@ -2454,7 +2374,8 @@ enum mad_error III_decode(struct mad_bitptr *ptr, struct mad_frame *frame,
 
   for (gr = 0; gr < ngr; ++gr) {
     struct granule *granule = &si->gr[gr];
-    unsigned int const *sfbwidth[2];
+    unsigned char const *sfbwidth[2];
+    mad_fixed_t xr[2][576];
     unsigned int ch;
     enum mad_error error;
 
@@ -2464,36 +2385,31 @@ enum mad_error III_decode(struct mad_bitptr *ptr, struct mad_frame *frame,
 
       sfbwidth[ch] = sfbwidth_table[sfreqi].l;
       if (channel->block_type == 2) {
-        sfbwidth[ch] = (channel->flags & mixed_block_flag) ?
-                       sfbwidth_table[sfreqi].m : sfbwidth_table[sfreqi].s;
+	sfbwidth[ch] = (channel->flags & mixed_block_flag) ?
+	  sfbwidth_table[sfreqi].m : sfbwidth_table[sfreqi].s;
       }
 
       if (header->flags & MAD_FLAG_LSF_EXT) {
-        part2_length = III_scalefactors_lsf(ptr, channel,
-                                            ch == 0 ? 0 : &si->gr[1].ch[1],
-                                            header->mode_extension);
+	part2_length = III_scalefactors_lsf(ptr, channel,
+					    ch == 0 ? 0 : &si->gr[1].ch[1],
+					    header->mode_extension);
       }
       else {
-        part2_length = III_scalefactors(ptr, channel, &si->gr[0].ch[ch],
-                                        gr == 0 ? 0 : si->scfsi[ch]);
+	part2_length = III_scalefactors(ptr, channel, &si->gr[0].ch[ch],
+					gr == 0 ? 0 : si->scfsi[ch]);
       }
 
       error = III_huffdecode(ptr, xr[ch], channel, sfbwidth[ch], part2_length);
-      if (error) {
-//        free(xr_raw);
-        return error;
-      }
+      if (error)
+	return error;
     }
 
     /* joint stereo processing */
 
     if (header->mode == MAD_MODE_JOINT_STEREO && header->mode_extension) {
-      // (void*) below just to get rid of warning about passing in a * and not a [2][576]
-      error = III_stereo((void*)frame->xr_raw, granule, header, sfbwidth[0]);
-      if (error) {
-//        free(xr_raw);
-        return error;
-      }
+      error = III_stereo(xr, granule, header, sfbwidth[0]);
+      if (error)
+	return error;
     }
 
     /* reordering, alias reduction, IMDCT, overlap-add, frequency inversion */
@@ -2505,50 +2421,46 @@ enum mad_error III_decode(struct mad_bitptr *ptr, struct mad_frame *frame,
       mad_fixed_t output[36];
 
       if (channel->block_type == 2) {
-        error = III_reorder(xr[ch], channel, sfbwidth[ch], frame->tmp);
-        if (error) {
-//          free(xr_raw);
-          return error;
-        }
+	III_reorder(xr[ch], channel, sfbwidth[ch]);
 
 # if !defined(OPT_STRICT)
-        /*
-           According to ISO/IEC 11172-3, "Alias reduction is not applied for
-           granules with block_type == 2 (short block)." However, other
-           sources suggest alias reduction should indeed be performed on the
-           lower two subbands of mixed blocks. Most other implementations do
-           this, so by default we will too.
-        */
-        if (channel->flags & mixed_block_flag)
-          III_aliasreduce(xr[ch], 36);
+	/*
+	 * According to ISO/IEC 11172-3, "Alias reduction is not applied for
+	 * granules with block_type == 2 (short block)." However, other
+	 * sources suggest alias reduction should indeed be performed on the
+	 * lower two subbands of mixed blocks. Most other implementations do
+	 * this, so by default we will too.
+	 */
+	if (channel->flags & mixed_block_flag)
+	  III_aliasreduce(xr[ch], 36);
 # endif
       }
       else
-        III_aliasreduce(xr[ch], 576);
+	III_aliasreduce(xr[ch], 576);
 
       l = 0;
 
       /* subbands 0-1 */
 
       if (channel->block_type != 2 || (channel->flags & mixed_block_flag)) {
-        unsigned int block_type;
+	unsigned int block_type;
 
-        block_type = channel->block_type;
-        if (channel->flags & mixed_block_flag)
-          block_type = 0;
+	block_type = channel->block_type;
+	if (channel->flags & mixed_block_flag)
+	  block_type = 0;
 
-        /* long blocks */
-        for (sb = 0; sb < 2; ++sb, l += 18) {
-          III_imdct_l(&xr[ch][l], output, block_type);
-          III_overlap(output, frame->overlap[ch][sb], sample, sb);
-        }
+	/* long blocks */
+	for (sb = 0; sb < 2; ++sb, l += 18) {
+	  III_imdct_l(&xr[ch][l], output, block_type);
+	  III_overlap(output, (*frame->overlap)[ch][sb], sample, sb);
+	}
       }
       else {
-        /* short blocks */
-        for (sb = 0; sb < 2; ++sb, l += 18) {
-          III_imdct_s(&xr[ch][l], output);
-          III_overlap(output, frame->overlap[ch][sb], sample, sb);
-        }
+	/* short blocks */
+	for (sb = 0; sb < 2; ++sb, l += 18) {
+	  III_imdct_s(&xr[ch][l], output);
+	  III_overlap(output, (*frame->overlap)[ch][sb], sample, sb);
+	}
       }
 
       III_freqinver(sample, 1);
@@ -2557,50 +2469,49 @@ enum mad_error III_decode(struct mad_bitptr *ptr, struct mad_frame *frame,
 
       i = 576;
       while (i > 36 && xr[ch][i - 1] == 0)
-        --i;
+	--i;
 
       sblimit = 32 - (576 - i) / 18;
 
       if (channel->block_type != 2) {
-        /* long blocks */
-        for (sb = 2; sb < sblimit; ++sb, l += 18) {
-          III_imdct_l(&xr[ch][l], output, channel->block_type);
-          III_overlap(output, frame->overlap[ch][sb], sample, sb);
+	/* long blocks */
+	for (sb = 2; sb < sblimit; ++sb, l += 18) {
+	  III_imdct_l(&xr[ch][l], output, channel->block_type);
+	  III_overlap(output, (*frame->overlap)[ch][sb], sample, sb);
 
-          if (sb & 1)
-            III_freqinver(sample, sb);
-        }
+	  if (sb & 1)
+	    III_freqinver(sample, sb);
+	}
       }
       else {
-        /* short blocks */
-        for (sb = 2; sb < sblimit; ++sb, l += 18) {
-          III_imdct_s(&xr[ch][l], output);
-          III_overlap(output, frame->overlap[ch][sb], sample, sb);
+	/* short blocks */
+	for (sb = 2; sb < sblimit; ++sb, l += 18) {
+	  III_imdct_s(&xr[ch][l], output);
+	  III_overlap(output, (*frame->overlap)[ch][sb], sample, sb);
 
-          if (sb & 1)
-            III_freqinver(sample, sb);
-        }
+	  if (sb & 1)
+	    III_freqinver(sample, sb);
+	}
       }
 
       /* remaining (zero) subbands */
 
       for (sb = sblimit; sb < 32; ++sb) {
-        III_overlap_z(frame->overlap[ch][sb], sample, sb);
+	III_overlap_z((*frame->overlap)[ch][sb], sample, sb);
 
-        if (sb & 1)
-          III_freqinver(sample, sb);
+	if (sb & 1)
+	  III_freqinver(sample, sb);
       }
     }
   }
 
-//  free(xr_raw);
   return MAD_ERROR_NONE;
 }
 
 /*
-   NAME:	layer->III()
-   DESCRIPTION:	decode a single Layer III frame
-*/
+ * NAME:	layer->III()
+ * DESCRIPTION:	decode a single Layer III frame
+ */
 int mad_layer_III(struct mad_stream *stream, struct mad_frame *frame)
 {
   struct mad_header *header = &frame->header;
@@ -2611,11 +2522,28 @@ int mad_layer_III(struct mad_stream *stream, struct mad_frame *frame)
   struct sideinfo si;
   enum mad_error error;
   int result = 0;
-  stack(__FUNCTION__, __FILE__, __LINE__);
+
+  /* allocate Layer III dynamic structures */
+
+  if (stream->main_data == 0) {
+    stream->main_data = malloc(MAD_BUFFER_MDLEN);
+    if (stream->main_data == 0) {
+      stream->error = MAD_ERROR_NOMEM;
+      return -1;
+    }
+  }
+
+  if (frame->overlap == 0) {
+    frame->overlap = calloc(2 * 32 * 18, sizeof(mad_fixed_t));
+    if (frame->overlap == 0) {
+      stream->error = MAD_ERROR_NOMEM;
+      return -1;
+    }
+  }
 
   nch = MAD_NCHANNELS(header);
   si_len = (header->flags & MAD_FLAG_LSF_EXT) ?
-           (nch == 1 ? 9 : 17) : (nch == 1 ? 17 : 32);
+    (nch == 1 ? 9 : 17) : (nch == 1 ? 17 : 32);
 
   /* check frame sanity */
 
@@ -2633,7 +2561,7 @@ int mad_layer_III(struct mad_stream *stream, struct mad_frame *frame)
       mad_bit_crc(stream->ptr, si_len * CHAR_BIT, header->crc_check);
 
     if (header->crc_check != header->crc_target &&
-        !(frame->options & MAD_OPTION_IGNORECRC)) {
+	!(frame->options & MAD_OPTION_IGNORECRC)) {
       stream->error = MAD_ERROR_BADCRC;
       result = -1;
     }
@@ -2642,7 +2570,7 @@ int mad_layer_III(struct mad_stream *stream, struct mad_frame *frame)
   /* decode frame side information */
 
   error = III_sideinfo(&stream->ptr, nch, header->flags & MAD_FLAG_LSF_EXT,
-                       &si, &data_bitlen, &priv_bitlen);
+		       &si, &data_bitlen, &priv_bitlen);
   if (error && result == 0) {
     stream->error = error;
     result = -1;
@@ -2662,10 +2590,10 @@ int mad_layer_III(struct mad_stream *stream, struct mad_frame *frame)
     header = mad_bit_read(&peek, 32);
     if ((header & 0xffe60000L) /* syncword | layer */ == 0xffe20000L) {
       if (!(header & 0x00010000L))  /* protection_bit */
-        mad_bit_skip(&peek, 16);  /* crc_check */
+	mad_bit_skip(&peek, 16);  /* crc_check */
 
       next_md_begin =
-        mad_bit_read(&peek, (header & 0x00080000L) /* ID */ ? 9 : 8);
+	mad_bit_read(&peek, (header & 0x00080000L) /* ID */ ? 9 : 8);
     }
 
     mad_bit_finish(&peek);
@@ -2691,22 +2619,22 @@ int mad_layer_III(struct mad_stream *stream, struct mad_frame *frame)
   else {
     if (si.main_data_begin > stream->md_len) {
       if (result == 0) {
-        stream->error = MAD_ERROR_BADDATAPTR;
-        result = -1;
+	stream->error = MAD_ERROR_BADDATAPTR;
+	result = -1;
       }
     }
     else {
       mad_bit_init(&ptr,
-                   stream->main_data + stream->md_len - si.main_data_begin);
+		   *stream->main_data + stream->md_len - si.main_data_begin);
 
       if (md_len > si.main_data_begin) {
-        assert(stream->md_len + md_len -
-               si.main_data_begin <= MAD_BUFFER_MDLEN);
+	assert(stream->md_len + md_len -
+	       si.main_data_begin <= MAD_BUFFER_MDLEN);
 
-        memcpy(stream->main_data + stream->md_len,
-               mad_bit_nextbyte(&stream->ptr),
-               frame_used = md_len - si.main_data_begin);
-        stream->md_len += frame_used;
+	memcpy(*stream->main_data + stream->md_len,
+	       mad_bit_nextbyte(&stream->ptr),
+	       frame_used = md_len - si.main_data_begin);
+	stream->md_len += frame_used;
       }
     }
   }
@@ -2730,17 +2658,17 @@ int mad_layer_III(struct mad_stream *stream, struct mad_frame *frame)
 
 # if 0 && defined(DEBUG)
   fprintf(stderr,
-          "main_data_begin:%u, md_len:%u, frame_free:%u, "
-          "data_bitlen:%u, anc_bitlen: %u\n",
-          si.main_data_begin, md_len, frame_free,
-          data_bitlen, stream->anc_bitlen);
+	  "main_data_begin:%u, md_len:%u, frame_free:%u, "
+	  "data_bitlen:%u, anc_bitlen: %u\n",
+	  si.main_data_begin, md_len, frame_free,
+	  data_bitlen, stream->anc_bitlen);
 # endif
 
   /* preload main_data buffer with up to 511 bytes for next frame(s) */
 
   if (frame_free >= next_md_begin) {
-    memcpy(stream->main_data,
-           stream->next_frame - next_md_begin, next_md_begin);
+    memcpy(*stream->main_data,
+	   stream->next_frame - next_md_begin, next_md_begin);
     stream->md_len = next_md_begin;
   }
   else {
@@ -2749,19 +2677,19 @@ int mad_layer_III(struct mad_stream *stream, struct mad_frame *frame)
 
       extra = si.main_data_begin - md_len;
       if (extra + frame_free > next_md_begin)
-        extra = next_md_begin - frame_free;
+	extra = next_md_begin - frame_free;
 
       if (extra < stream->md_len) {
-        memmove(stream->main_data,
-                stream->main_data + stream->md_len - extra, extra);
-        stream->md_len = extra;
+	memmove(*stream->main_data,
+		*stream->main_data + stream->md_len - extra, extra);
+	stream->md_len = extra;
       }
     }
     else
       stream->md_len = 0;
 
-    memcpy(stream->main_data + stream->md_len,
-           stream->next_frame - frame_free, frame_free);
+    memcpy(*stream->main_data + stream->md_len,
+	   stream->next_frame - frame_free, frame_free);
     stream->md_len += frame_free;
   }
 

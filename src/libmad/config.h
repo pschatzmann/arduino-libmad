@@ -4,23 +4,11 @@
 /* Define to enable diagnostic debugging support. */
 /* #undef DEBUG */
 
-// Uncomment to show heap and stack space on entry
-#define stack(a,b,c)
-
-// Helper function to see if we can allocate one chunk on the stack
-# ifdef __cplusplus
-extern "C" {
-# endif
-extern int stackfree();
-# ifdef __cplusplus
-}
-# endif
-
 /* Define to enable experimental code. */
 /* #undef EXPERIMENTAL */
 
 /* Define to 1 if you have the <assert.h> header file. */
-//#define HAVE_ASSERT_H 1
+#define HAVE_ASSERT_H 1
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
@@ -46,10 +34,8 @@ extern int stackfree();
 /* Define if your MIPS CPU supports a 2-operand MADD16 instruction. */
 /* #undef HAVE_MADD16_ASM */
 
-#define FPM_DEFAULT
-
 /* Define if your MIPS CPU supports a 2-operand MADD instruction. */
-#define HAVE_MADD_ASM 1
+#undef HAVE_MEMORY_H
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
@@ -85,7 +71,7 @@ extern int stackfree();
 #undef HAVE_WAITPID
 
 /* Define to disable debugging assertions. */
-#define NDEBUG 1
+/* #undef NDEBUG */
 
 /* Define to optimize for accuracy over speed. */
 /* #undef OPT_ACCURACY */
@@ -98,7 +84,7 @@ extern int stackfree();
 
 /* Define to influence a strict interpretation of the ISO/IEC standards, even
    if this is in opposition with best accepted practices. */
-#undef OPT_STRICT
+#undef OPT_STRICT 
 
 /* Name of package */
 #define PACKAGE "libmad"
@@ -128,14 +114,14 @@ extern int stackfree();
 #define SIZEOF_LONG_LONG 8
 
 /* Define to 1 if you have the ANSI C header files. */
-#undef STDC_HEADERS
+/* #undef STDC_HEADERS */
 
 /* Version number of package */
-#define VERSION "0.15.1b-esp8266"
+#define VERSION "0.15.1b"
 
 /* Define to 1 if your processor stores words with the most significant byte
    first (like Motorola and SPARC, unlike Intel and VAX). */
-#undef WORDS_BIGENDIAN
+#undef WORDS_BIGENDIAN 
 
 /* Define to empty if `const' does not conform to ANSI C. */
 /* #undef const */
@@ -148,3 +134,11 @@ extern int stackfree();
 
 /* Define to `int' if <sys/types.h> does not define. */
 /* #undef pid_t */
+
+#if defined(__arm__)	
+# define FPM_ARM
+#elif defined(_X64_)
+# define FPM_INTEL
+#else
+#define FPM_DEFAULT
+#endif

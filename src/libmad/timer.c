@@ -21,17 +21,17 @@
 
 #pragma GCC optimize ("O3")
 
-#  include "config.h"
+#include "config.h"
 
-# include "global.h"
+#include "global.h"
 
-# include <stdio.h>
+#include <stdio.h>
 
 # ifdef HAVE_ASSERT_H
-#  include <assert.h>
+#include <assert.h>
 # endif
 
-# include "timer.h"
+#include "timer.h"
 
 mad_timer_t const mad_timer_zero = { 0, 0 };
 

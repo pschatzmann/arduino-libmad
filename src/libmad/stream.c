@@ -20,16 +20,15 @@
  */
 
 #pragma GCC optimize ("O3")
-
 #include "mad_pgmspace.h"
-#  include "config.h"
+#include "config.h"
 
-# include "global.h"
+#include "global.h"
 
-# include <stdlib.h>
+#include <stdlib.h>
 
-# include "bit.h"
-# include "stream.h"
+#include "bit.h"
+#include "stream.h"
 
 /*
  * NAME:	stream->init()
@@ -37,7 +36,6 @@
  */
 void mad_stream_init(struct mad_stream *stream)
 {
-stack(__FUNCTION__, __FILE__, __LINE__);
   stream->buffer     = 0;
   stream->bufend     = 0;
   stream->skiplen    = 0;
@@ -52,6 +50,7 @@ stack(__FUNCTION__, __FILE__, __LINE__);
   mad_bit_init(&stream->anc_ptr, 0);
   stream->anc_bitlen = 0;
 
+  stream->main_data  = 0;
   stream->md_len     = 0;
 
   stream->options    = 0;
@@ -64,8 +63,10 @@ stack(__FUNCTION__, __FILE__, __LINE__);
  */
 void mad_stream_finish(struct mad_stream *stream)
 {
-stack(__FUNCTION__, __FILE__, __LINE__);
-  (void) stream;
+  if (stream->main_data) {
+    free(stream->main_data);
+    stream->main_data = 0;
+  }
 
   mad_bit_finish(&stream->anc_ptr);
   mad_bit_finish(&stream->ptr);
@@ -78,7 +79,6 @@ stack(__FUNCTION__, __FILE__, __LINE__);
 void mad_stream_buffer(struct mad_stream *stream,
 		       unsigned char const *buffer, unsigned long length)
 {
-stack(__FUNCTION__, __FILE__, __LINE__);
   stream->buffer = buffer;
   stream->bufend = buffer + length;
 
@@ -96,7 +96,6 @@ stack(__FUNCTION__, __FILE__, __LINE__);
  */
 void mad_stream_skip(struct mad_stream *stream, unsigned long length)
 {
-stack(__FUNCTION__, __FILE__, __LINE__);
   stream->skiplen += length;
 }
 
@@ -107,7 +106,6 @@ stack(__FUNCTION__, __FILE__, __LINE__);
 int mad_stream_sync(struct mad_stream *stream)
 {
   register unsigned char const *ptr, *end;
-stack(__FUNCTION__, __FILE__, __LINE__);
 
   ptr = mad_bit_nextbyte(&stream->ptr);
   end = stream->bufend;
@@ -130,7 +128,6 @@ stack(__FUNCTION__, __FILE__, __LINE__);
  */
 char const *mad_stream_errorstr(struct mad_stream const *stream)
 {
-stack(__FUNCTION__, __FILE__, __LINE__);
   switch (stream->error) {
   case MAD_ERROR_NONE:		 return PSTR("no error");
 

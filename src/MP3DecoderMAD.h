@@ -235,6 +235,19 @@ class MP3DecoderMAD  {
             return MAD_FLOW_CONTINUE;
         }
 
+        static signed int scale(mad_fixed_t sample) {
+        /* round */
+        sample += (1L << (MAD_F_FRACBITS - 16));
+
+        /* clip */
+        if (sample >= MAD_F_ONE)
+            sample = MAD_F_ONE - 1;
+        else if (sample < -MAD_F_ONE)
+            sample = -MAD_F_ONE;
+
+        /* quantize */
+        return sample >> (MAD_F_FRACBITS + 1 - 16);
+        }
 
         /*
         * This is the mad_output_streamput callback function. It is called after each frame of
@@ -264,7 +277,7 @@ class MP3DecoderMAD  {
             int i = 0;
             for (int j=0;j<nsamples;j++){
                 for (int ch = 0;ch<nchannels;ch++){
-                    result[i++] = pcm->samples[0][j];
+                    result[i++] = scale(pcm->samples[0][j]);
                 }
             }
 

@@ -19,13 +19,11 @@
  * $Id: version.c,v 1.15 2004/01/23 09:41:33 rob Exp $
  */
 
-#pragma GCC optimize ("O3")
+#include "config.h"
 
-#  include "config.h"
+#include "global.h"
 
-# include "global.h"
-
-# include "version.h"
+#include "version.h"
 
 char const mad_version[]   = "MPEG Audio Decoder " MAD_VERSION;
 char const mad_copyright[] = "Copyright (C) " MAD_PUBLISHYEAR " " MAD_AUTHOR;

@@ -2,7 +2,7 @@
 
 [MAD from Underbit](https://www.underbit.com/products/mad/) is a high-quality MPEG audio decoder. It currently supports MPEG-1 and the MPEG-2 extension to lower sampling frequencies, as well as the de facto MPEG 2.5 format. All three audio layers — Layer I, Layer II, and Layer III (i.e. MP3) — are fully implemented. MP3 is a compressed audio file formats based on PCM. A 2.6 MB wav file can be compressed down to 476 kB MP3.
 
-I am providing the [MAD MP3 decoder](hhttps://www.underbit.com/products/mad/) as a __Arduino Library__ with a __simple API__. Libmad is based on callbacks and therefore the most efficient way to use this library outside of Arduino is by using the callback methods for providing and processing the data. In Arduino we can alternatively use Streams instead. Finally you can also use the write method to provide the mp3 data, but this involves quite some overhead.
+I am providing the [MAD MP3 decoder](hhttps://www.underbit.com/products/mad/) as a __Arduino Library__ with a __simple Arduino Style API__. Libmad is based on callbacks and therefore the most efficient way to use this library outside of Arduino is by using the callback methods for providing and processing the data. In Arduino we can alternatively use Streams instead. Finally you can also use the write method to provide the mp3 data, but this involves quite some overhead.
 
 This project can be used stand alone or together with the [arduino-audio_tools library](https://github.com/pschatzmann/arduino-audio-tools). It can also be used __outside of Arduino with the help of cmake__.
 
@@ -71,7 +71,6 @@ cmake ..
 make
 ```
   
-
 ### Documentation
 
 The [Class Documentation can be found here](https://pschatzmann.github.io/arduino-libmad/html/annotated.html)

@@ -16,15 +16,16 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: layer3.h,v 1.10 2004/01/23 09:41:32 rob Exp $
+ * $Id: layer12.h,v 1.10 2004/01/23 09:41:32 rob Exp $
  */
 
-# ifndef LIBMAD_LAYER3_H
-# define LIBMAD_LAYER3_H
+# ifndef LIBMAD_LAYER12_H
+# define LIBMAD_LAYER12_H
 
 #include "stream.h"
 #include "frame.h"
 
-int mad_layer_III(struct mad_stream *, struct mad_frame *);
+int mad_layer_I(struct mad_stream *, struct mad_frame *);
+int mad_layer_II(struct mad_stream *, struct mad_frame *);
 
 # endif

@@ -29,7 +29,7 @@
 # endif
 
 # if defined(DEBUG)
-#  include <stdio.h>
+#include <stdio.h>
 # endif
 
 /* conditional features */
@@ -48,7 +48,6 @@
 # endif
 
 # if !defined(HAVE_ASSERT_H)
-#  undef assert
 #  if defined(NDEBUG)
 #   define assert(x)	/* nothing */
 #  else

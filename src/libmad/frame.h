@@ -22,9 +22,9 @@
 # ifndef LIBMAD_FRAME_H
 # define LIBMAD_FRAME_H
 
-# include "fixed.h"
-# include "timer.h"
-# include "stream.h"
+#include "fixed.h"
+#include "timer.h"
+#include "stream.h"
 
 enum mad_layer {
   MAD_LAYER_I   = 1,			/* Layer I */
@@ -70,10 +70,7 @@ struct mad_frame {
   int options;				/* decoding options (from stream) */
 
   mad_fixed_t sbsample[2][36][32];	/* synthesis subband filter samples */
-  mad_fixed_t overlap[2][32][18];	/* Layer III block overlap data */
-
-  mad_fixed_t xr_raw[576*2];
-  mad_fixed_t tmp[576];
+  mad_fixed_t (*overlap)[2][32][18];	/* Layer III block overlap data */
 };
 
 # define MAD_NCHANNELS(header)		((header)->mode ? 2 : 1)

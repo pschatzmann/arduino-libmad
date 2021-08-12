@@ -18,24 +18,23 @@
  *
  * $Id: frame.c,v 1.29 2004/02/04 22:59:19 rob Exp $
  */
-
 #pragma GCC optimize ("O3")
 
-#include "mad_pgmspace.h"
-#  include "config.h"
+#include "config.h"
 
-# include "global.h"
+#include "global.h"
 
-# include <stdlib.h>
+#include <stdlib.h>
 
-# include "bit.h"
-# include "stream.h"
-# include "frame.h"
-# include "timer.h"
-# include "layer3.h"
+#include "bit.h"
+#include "stream.h"
+#include "frame.h"
+#include "timer.h"
+#include "layer12.h"
+#include "layer3.h"
 
 static
-unsigned long const bitrate_table[5][15] PROGMEM = {
+unsigned long const bitrate_table[5][15] = {
   /* MPEG-1 */
   { 0,  32000,  64000,  96000, 128000, 160000, 192000, 224000,  /* Layer I   */
        256000, 288000, 320000, 352000, 384000, 416000, 448000 },
@@ -52,12 +51,12 @@ unsigned long const bitrate_table[5][15] PROGMEM = {
 };
 
 static
-unsigned int const samplerate_table[3] PROGMEM = { 44100, 48000, 32000 };
+unsigned int const samplerate_table[3] = { 44100, 48000, 32000 };
 
 static
 int (*const decoder_table[3])(struct mad_stream *, struct mad_frame *) = {
-  NULL, //mad_layer_I,
-  NULL, //mad_layer_II,
+  mad_layer_I,
+  mad_layer_II,
   mad_layer_III
 };
 
@@ -90,11 +89,11 @@ void mad_header_init(struct mad_header *header)
  */
 void mad_frame_init(struct mad_frame *frame)
 {
-  stack(__FUNCTION__,__FILE__,__LINE__);
   mad_header_init(&frame->header);
 
   frame->options = 0;
 
+  frame->overlap = 0;
   mad_frame_mute(frame);
 }
 
@@ -104,8 +103,12 @@ void mad_frame_init(struct mad_frame *frame)
  */
 void mad_frame_finish(struct mad_frame *frame)
 {
-  (void) frame;
   mad_header_finish(&frame->header);
+
+  if (frame->overlap) {
+    free(frame->overlap);
+    frame->overlap = 0;
+  }
 }
 
 /*
@@ -311,7 +314,7 @@ int mad_header_decode(struct mad_header *header, struct mad_stream *stream)
     if (!stream->sync)
       ptr = stream->this_frame;
 
-    if ((unsigned int)(end - ptr) < stream->skiplen) {
+    if (end - ptr < stream->skiplen) {
       stream->skiplen   -= end - ptr;
       stream->next_frame = end;
 
@@ -396,7 +399,7 @@ int mad_header_decode(struct mad_header *header, struct mad_stream *stream)
   }
 
   /* verify there is enough data left in buffer to decode this frame */
-  if (N + MAD_BUFFER_GUARD > (unsigned int)(end - stream->this_frame)) {
+  if (N + MAD_BUFFER_GUARD > end - stream->this_frame) {
     stream->next_frame = stream->this_frame;
 
     stream->error = MAD_ERROR_BUFLEN;
@@ -446,11 +449,6 @@ int mad_frame_decode(struct mad_frame *frame, struct mad_stream *stream)
 
   frame->header.flags &= ~MAD_FLAG_INCOMPLETE;
 
-  // EFP3 - On non-MP3 frames, abort instead of crash..we removed MP-II/MP-I decoders
-  if (!decoder_table[frame->header.layer - 1]) {
-    goto fail;
-  }
-
   if (decoder_table[frame->header.layer - 1](stream, frame) == -1) {
     if (!MAD_RECOVERABLE(stream->error))
       stream->next_frame = stream->this_frame;
@@ -493,10 +491,12 @@ void mad_frame_mute(struct mad_frame *frame)
     }
   }
 
-  for (s = 0; s < 18; ++s) {
-    for (sb = 0; sb < 32; ++sb) {
-	frame->overlap[0][sb][s] =
-	frame->overlap[1][sb][s] = 0;
+  if (frame->overlap) {
+    for (s = 0; s < 18; ++s) {
+      for (sb = 0; sb < 32; ++sb) {
+	(*frame->overlap)[0][sb][s] =
+	(*frame->overlap)[1][sb][s] = 0;
+      }
     }
   }
 }
