@@ -277,7 +277,7 @@ class MP3DecoderMAD  {
             int i = 0;
             for (int j=0;j<nsamples;j++){
                 for (int ch = 0;ch<nchannels;ch++){
-                    result[i++] = scale(pcm->samples[0][j]);
+                    result[i++] = scale(pcm->samples[ch][j]);
                 }
             }
 
