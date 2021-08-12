@@ -273,7 +273,7 @@ class MP3DecoderMAD  {
             // convert to int16_t
             nchannels = pcm->channels;
             nsamples  = pcm->length;
-            int16_t result[nchannels*nsamples];
+            int16_t result[nsamples*nchannels];
             int i = 0;
             for (int j=0;j<nsamples;j++){
                 for (int ch = 0;ch<nchannels;ch++){
