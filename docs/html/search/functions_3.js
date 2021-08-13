@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['operator_20bool_24',['operator bool',['../classlibmad_1_1_m_p3_decoder_m_a_d.html#a5547d9d93ac93ba91798cf8bf4e6c4d2',1,'libmad::MP3DecoderMAD']]]
+  ['maxframesize_35',['maxFrameSize',['../classlibmad_1_1_m_p3_decoder_m_a_d.html#a0ee400683533bc78c135b52d92862af0',1,'libmad::MP3DecoderMAD']]]
 ];

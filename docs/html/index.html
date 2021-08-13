@@ -66,7 +66,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><p><a class="anchor" id="md_README"></a> <a href="https://www.underbit.com/products/mad/">MAD from Underbit</a> is a high-quality MPEG audio decoder. It currently supports MPEG-1 and the MPEG-2 extension to lower sampling frequencies, as well as the de facto MPEG 2.5 format. All three audio layers — Layer I, Layer II, and Layer III (i.e. MP3) — are fully implemented. MP3 is a compressed audio file formats based on PCM. A 2.6 MB wav file can be compressed down to 476 kB MP3.</p>
-<p>I am providing the <a href="hhttps://www.underbit.com/products/mad/">MAD MP3 decoder</a> as a <b>Arduino Library</b> with a <b>simple API</b>. Libmad is based on callbacks and therefore the most efficient way to use this library outside of Arduino is by using the callback methods for providing and processing the data. In Arduino we can alternatively use Streams instead. Finally you can also use the write method to provide the mp3 data, but this involves quite some overhead.</p>
+<p>I am providing the <a href="hhttps://www.underbit.com/products/mad/">MAD MP3 decoder</a> as a <b>Arduino Library</b> with a <b>simple Arduino Style API</b>.</p>
 <p>This project can be used stand alone or together with the <a href="https://github.com/pschatzmann/arduino-audio-tools">arduino-audio_tools library</a>. It can also be used <b>outside of Arduino with the help of cmake</b>.</p>
 <h2><a class="anchor" id="autotoc_md1"></a>
 Callback API Example</h2>
@@ -76,7 +76,6 @@ Callback API Example</h2>
 <div class="line"> </div>
 <div class="line">using namespace libmad;</div>
 <div class="line"> </div>
-<div class="line">// Callback for decoded result</div>
 <div class="line">void pcmDataCallback(MadAudioInfo &amp;info, int16_t *pwm_buffer, size_t len) {</div>
 <div class="line">    for (size_t i=0; i&lt;len; i+=info.channels){</div>
 <div class="line">        for (int j=0;j&lt;info.channels;j++){</div>
@@ -87,26 +86,20 @@ Callback API Example</h2>
 <div class="line">    }</div>
 <div class="line">}</div>
 <div class="line"> </div>
-<div class="line">// Callback to provide data</div>
-<div class="line">InputData inputDataCallback(){</div>
-<div class="line">    InputData data = {BabyElephantWalk60_mp3, BabyElephantWalk60_mp3_len};</div>
-<div class="line">    return data;</div>
-<div class="line">}</div>
-<div class="line"> </div>
 <div class="line">MP3DecoderMAD mp3(pcmDataCallback);</div>
 <div class="line"> </div>
 <div class="line">void setup() {</div>
-<div class="line">    mp3.setInputCallback(inputDataCallback);</div>
 <div class="line">    Serial.begin(115200);</div>
 <div class="line">    mp3.begin();</div>
 <div class="line">}</div>
 <div class="line"> </div>
 <div class="line">void loop() {</div>
+<div class="line">    Serial.println(&quot;writing...&quot;);</div>
+<div class="line">    mp3.write(BabyElephantWalk60_mp3, BabyElephantWalk60_mp3_len);    </div>
+<div class="line"> </div>
 <div class="line">    // restart from the beginning</div>
 <div class="line">    delay(2000);</div>
-<div class="line">    if (!mp3) {</div>
-<div class="line">        mp3.begin();</div>
-<div class="line">    }</div>
+<div class="line">    mp3.begin();</div>
 <div class="line">}</div>
 </div><!-- fragment --> <h2><a class="anchor" id="autotoc_md2"></a>
 Installation</h2>
@@ -121,7 +114,7 @@ Installation</h2>
 <div class="line">make</div>
 </div><!-- fragment --><h2><a class="anchor" id="autotoc_md3"></a>
 Documentation</h2>
-<p>The <a href="https://pschatzmann.github.io/arduino-libmad/html/annotated.html">class documentation can be found here</a> </p>
+<p>The <a href="https://pschatzmann.github.io/arduino-libmad/html/annotated.html">Class Documentation can be found here</a> </p>
 </div></div><!-- PageDoc -->
 </div><!-- contents -->
 <!-- start footer part -->

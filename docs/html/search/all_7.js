@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['write_14',['write',['../classlibmad_1_1_m_p3_decoder_m_a_d.html#ab7bcd4167fbd16566db26576a1afed5f',1,'libmad::MP3DecoderMAD::write(const void *data, size_t len)'],['../classlibmad_1_1_m_p3_decoder_m_a_d.html#a030baef1ea44b633803a86e9b9c73f41',1,'libmad::MP3DecoderMAD::write(void *data, size_t len)']]]
+  ['write_21',['write',['../classlibmad_1_1_m_p3_decoder_m_a_d.html#af9d61b9a05cd696bf61459fccdf22b36',1,'libmad::MP3DecoderMAD']]],
+  ['writeframe_22',['writeFrame',['../classlibmad_1_1_m_p3_decoder_m_a_d.html#a9115a1b0f4861df5c7c584d1e1f9e266',1,'libmad::MP3DecoderMAD']]]
 ];

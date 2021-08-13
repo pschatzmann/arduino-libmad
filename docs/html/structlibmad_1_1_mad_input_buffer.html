@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Arduino LibMAD: libmad::MadAudioInfo Struct Reference</title>
+<title>Arduino LibMAD: libmad::MadInputBuffer Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -61,53 +61,47 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><b>libmad</b></li><li class="navelem"><a class="el" href="structlibmad_1_1_mad_audio_info.html">MadAudioInfo</a></li>  </ul>
+<li class="navelem"><b>libmad</b></li><li class="navelem"><a class="el" href="structlibmad_1_1_mad_input_buffer.html">MadInputBuffer</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-attribs">Public Attributes</a> &#124;
-<a href="structlibmad_1_1_mad_audio_info-members.html">List of all members</a>  </div>
+<a href="structlibmad_1_1_mad_input_buffer-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">libmad::MadAudioInfo Struct Reference</div>  </div>
+<div class="title">libmad::MadInputBuffer Struct Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 
-<p>Basic Audio Information (number of hannels, sample rate)  
- <a href="structlibmad_1_1_mad_audio_info.html#details">More...</a></p>
+<p>Individual chunk of encoded MP3 data which is submitted to the decoder.  
+ <a href="structlibmad_1_1_mad_input_buffer.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="_m_p3_decoder_m_a_d_8h_source.html">MP3DecoderMAD.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a98c6725e4c1fbead4d0be2745edaa506"><td class="memItemLeft" align="right" valign="top"><a id="a98c6725e4c1fbead4d0be2745edaa506"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>MadAudioInfo</b> (const <a class="el" href="structlibmad_1_1_mad_audio_info.html">MadAudioInfo</a> &amp;)=default</td></tr>
-<tr class="separator:a98c6725e4c1fbead4d0be2745edaa506"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2aed7264f59002c17fbaf1074da01e34"><td class="memItemLeft" align="right" valign="top"><a id="a2aed7264f59002c17fbaf1074da01e34"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>MadAudioInfo</b> (mad_pcm &amp;pcm)</td></tr>
-<tr class="separator:a2aed7264f59002c17fbaf1074da01e34"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4cdef33f976f165bb76940cfaa47f9dc"><td class="memItemLeft" align="right" valign="top"><a id="a4cdef33f976f165bb76940cfaa47f9dc"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>operator==</b> (<a class="el" href="structlibmad_1_1_mad_audio_info.html">MadAudioInfo</a> alt)</td></tr>
-<tr class="separator:a4cdef33f976f165bb76940cfaa47f9dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a602f8961c2be9ce038f924646c1cf3c7"><td class="memItemLeft" align="right" valign="top"><a id="a602f8961c2be9ce038f924646c1cf3c7"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>operator!=</b> (<a class="el" href="structlibmad_1_1_mad_audio_info.html">MadAudioInfo</a> alt)</td></tr>
-<tr class="separator:a602f8961c2be9ce038f924646c1cf3c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a199cb92ed9684098a5bbd35cb31b4bbe"><td class="memItemLeft" align="right" valign="top"><a id="a199cb92ed9684098a5bbd35cb31b4bbe"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>MadInputBuffer</b> (void *data, size_t len)</td></tr>
+<tr class="separator:a199cb92ed9684098a5bbd35cb31b4bbe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aca0711ee6ed5fea895f55344c25e7bee"><td class="memItemLeft" align="right" valign="top"><a id="aca0711ee6ed5fea895f55344c25e7bee"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>MadInputBuffer</b> (const void *data, size_t len)</td></tr>
+<tr class="separator:aca0711ee6ed5fea895f55344c25e7bee"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:a1fba03abb755a026133949b6d43c8d05"><td class="memItemLeft" align="right" valign="top"><a id="a1fba03abb755a026133949b6d43c8d05"></a>
-int&#160;</td><td class="memItemRight" valign="bottom"><b>sample_rate</b> = 0</td></tr>
-<tr class="separator:a1fba03abb755a026133949b6d43c8d05"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7ae95f67f9766e7633e6b1a5c118f766"><td class="memItemLeft" align="right" valign="top"><a id="a7ae95f67f9766e7633e6b1a5c118f766"></a>
-int&#160;</td><td class="memItemRight" valign="bottom"><b>channels</b> = 0</td></tr>
-<tr class="separator:a7ae95f67f9766e7633e6b1a5c118f766"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4563e91efbfdd4db5cfbf03264aee9db"><td class="memItemLeft" align="right" valign="top"><a id="a4563e91efbfdd4db5cfbf03264aee9db"></a>
-int&#160;</td><td class="memItemRight" valign="bottom"><b>bits_per_sample</b> =16</td></tr>
-<tr class="separator:a4563e91efbfdd4db5cfbf03264aee9db"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8d635ff4124d94876aab2b78796a213c"><td class="memItemLeft" align="right" valign="top"><a id="a8d635ff4124d94876aab2b78796a213c"></a>
+uint8_t *&#160;</td><td class="memItemRight" valign="bottom"><b>data</b> =nullptr</td></tr>
+<tr class="separator:a8d635ff4124d94876aab2b78796a213c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a40ddb240d619836a64b6e709bce2c90e"><td class="memItemLeft" align="right" valign="top"><a id="a40ddb240d619836a64b6e709bce2c90e"></a>
+size_t&#160;</td><td class="memItemRight" valign="bottom"><b>size</b> =0</td></tr>
+<tr class="separator:a40ddb240d619836a64b6e709bce2c90e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a99bff1b472756f24edd3cc76a1d349d3"><td class="memItemLeft" align="right" valign="top"><a id="a99bff1b472756f24edd3cc76a1d349d3"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>cleanup</b> = false</td></tr>
+<tr class="separator:a99bff1b472756f24edd3cc76a1d349d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Basic Audio Information (number of hannels, sample rate) </p>
+<div class="textblock"><p>Individual chunk of encoded MP3 data which is submitted to the decoder. </p>
 <dl class="section author"><dt>Author</dt><dd>Phil Schatzmann </dd></dl>
 <dl class="section copyright"><dt>Copyright</dt><dd>GPLv3 </dd></dl>
 </div><hr/>The documentation for this struct was generated from the following file:<ul>

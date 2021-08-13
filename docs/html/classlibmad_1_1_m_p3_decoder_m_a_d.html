@@ -76,7 +76,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>A simple Arduino API for the libMAD MP3 decoder. The data is provided with the help of <a class="el" href="classlibmad_1_1_m_p3_decoder_m_a_d.html#ab7bcd4167fbd16566db26576a1afed5f" title="Makes the mp3 data available for decoding: however we recommend to provide the data via a callback or...">write()</a> calls. The decoded result is available either via a callback method or via an mad_mad_output_streamput_streamput stream.  
+<p>A simple Arduino API for the libMAD MP3 decoder. The data is provided with the help of <a class="el" href="classlibmad_1_1_m_p3_decoder_m_a_d.html#af9d61b9a05cd696bf61459fccdf22b36" title="Makes the mp3 data available for decoding: however we recommend to provide the data via a callback or...">write()</a> calls. The decoded result is available either via a callback method or via an mad_mad_output_streamput_streamput stream.  
  <a href="classlibmad_1_1_m_p3_decoder_m_a_d.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="_m_p3_decoder_m_a_d_8h_source.html">MP3DecoderMAD.h</a>&gt;</code></p>
@@ -86,15 +86,15 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a77c5d07d93b060398fcc05d8ffe7b6d0"><td class="memItemLeft" align="right" valign="top"><a id="a77c5d07d93b060398fcc05d8ffe7b6d0"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>MP3DecoderMAD</b> (MP3DataCallback dataCallback, MP3InfoCallback infoCB=nullptr)</td></tr>
 <tr class="separator:a77c5d07d93b060398fcc05d8ffe7b6d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a36337ef4d1009576e0bf3bf271464582"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classlibmad_1_1_m_p3_decoder_m_a_d.html#a36337ef4d1009576e0bf3bf271464582">setBufferSize</a> (size_t size)</td></tr>
+<tr class="memdesc:a36337ef4d1009576e0bf3bf271464582"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the maximum buffer size which is used for parsing the data.  <a href="classlibmad_1_1_m_p3_decoder_m_a_d.html#a36337ef4d1009576e0bf3bf271464582">More...</a><br /></td></tr>
+<tr class="separator:a36337ef4d1009576e0bf3bf271464582"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a93e74ec873a0a29209de2208f7a10cb4"><td class="memItemLeft" align="right" valign="top"><a id="a93e74ec873a0a29209de2208f7a10cb4"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>MP3DecoderMAD</b> (Print &amp;mad_output_streamput, MP3InfoCallback infoCB=nullptr)</td></tr>
 <tr class="separator:a93e74ec873a0a29209de2208f7a10cb4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adbbeda9d5cdbe2e901e8d4c2b3318a41"><td class="memItemLeft" align="right" valign="top"><a id="adbbeda9d5cdbe2e901e8d4c2b3318a41"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>setmad_output_streamput</b> (Print &amp;mad_output_streamput)</td></tr>
-<tr class="separator:adbbeda9d5cdbe2e901e8d4c2b3318a41"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acfef5159ce09426b3fe02e800395410f"><td class="memItemLeft" align="right" valign="top"><a id="acfef5159ce09426b3fe02e800395410f"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>setInput</b> (Stream &amp;input)</td></tr>
-<tr class="separator:acfef5159ce09426b3fe02e800395410f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acc58e48e92dfcd3f6a23e4f48a1750a7"><td class="memItemLeft" align="right" valign="top"><a id="acc58e48e92dfcd3f6a23e4f48a1750a7"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>setOutput</b> (Print &amp;out)</td></tr>
+<tr class="separator:acc58e48e92dfcd3f6a23e4f48a1750a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3a480da4b29dcaa80f9c619d9ae9cd8d"><td class="memItemLeft" align="right" valign="top"><a id="a3a480da4b29dcaa80f9c619d9ae9cd8d"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classlibmad_1_1_m_p3_decoder_m_a_d.html#a3a480da4b29dcaa80f9c619d9ae9cd8d">setDataCallback</a> (MP3DataCallback cb)</td></tr>
 <tr class="memdesc:a3a480da4b29dcaa80f9c619d9ae9cd8d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Defines the callback which receives the decoded data. <br /></td></tr>
@@ -103,30 +103,20 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classlibmad_1_1_m_p3_decoder_m_a_d.html#a20181dba47d710f374d5d222cd8512cd">setInfoCallback</a> (MP3InfoCallback cb)</td></tr>
 <tr class="memdesc:a20181dba47d710f374d5d222cd8512cd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Defines the callback which receives the Info changes. <br /></td></tr>
 <tr class="separator:a20181dba47d710f374d5d222cd8512cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac86b4f6fa93f8b40c58cd1345203431c"><td class="memItemLeft" align="right" valign="top"><a id="ac86b4f6fa93f8b40c58cd1345203431c"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classlibmad_1_1_m_p3_decoder_m_a_d.html#ac86b4f6fa93f8b40c58cd1345203431c">setInputCallback</a> (MP3MadInputDataCallback input)</td></tr>
-<tr class="memdesc:ac86b4f6fa93f8b40c58cd1345203431c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Defines the callback which provides input data. <br /></td></tr>
-<tr class="separator:ac86b4f6fa93f8b40c58cd1345203431c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2929898b5e9026e96e9ae8327cb74d36"><td class="memItemLeft" align="right" valign="top"><a id="a2929898b5e9026e96e9ae8327cb74d36"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classlibmad_1_1_m_p3_decoder_m_a_d.html#a2929898b5e9026e96e9ae8327cb74d36">begin</a> ()</td></tr>
-<tr class="memdesc:a2929898b5e9026e96e9ae8327cb74d36"><td class="mdescLeft">&#160;</td><td class="mdescRight">Starts the processing. <br /></td></tr>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>begin</b> ()</td></tr>
 <tr class="separator:a2929898b5e9026e96e9ae8327cb74d36"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acc1c4cc13b8ea61c78f4a7625920140a"><td class="memItemLeft" align="right" valign="top"><a id="acc1c4cc13b8ea61c78f4a7625920140a"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classlibmad_1_1_m_p3_decoder_m_a_d.html#acc1c4cc13b8ea61c78f4a7625920140a">end</a> ()</td></tr>
-<tr class="memdesc:acc1c4cc13b8ea61c78f4a7625920140a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Releases the reserved memory. <br /></td></tr>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>end</b> ()</td></tr>
 <tr class="separator:acc1c4cc13b8ea61c78f4a7625920140a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a06a03413a36f83717cbb3266d00b1b29"><td class="memItemLeft" align="right" valign="top"><a id="a06a03413a36f83717cbb3266d00b1b29"></a>
 <a class="el" href="structlibmad_1_1_mad_audio_info.html">MadAudioInfo</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classlibmad_1_1_m_p3_decoder_m_a_d.html#a06a03413a36f83717cbb3266d00b1b29">audioInfo</a> ()</td></tr>
 <tr class="memdesc:a06a03413a36f83717cbb3266d00b1b29"><td class="mdescLeft">&#160;</td><td class="mdescRight">Provides the last valid audio information. <br /></td></tr>
 <tr class="separator:a06a03413a36f83717cbb3266d00b1b29"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab7bcd4167fbd16566db26576a1afed5f"><td class="memItemLeft" align="right" valign="top"><a id="ab7bcd4167fbd16566db26576a1afed5f"></a>
-size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classlibmad_1_1_m_p3_decoder_m_a_d.html#ab7bcd4167fbd16566db26576a1afed5f">write</a> (const void *data, size_t len)</td></tr>
-<tr class="memdesc:ab7bcd4167fbd16566db26576a1afed5f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Makes the mp3 data available for decoding: however we recommend to provide the data via a callback or input stream. <br /></td></tr>
-<tr class="separator:ab7bcd4167fbd16566db26576a1afed5f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a030baef1ea44b633803a86e9b9c73f41"><td class="memItemLeft" align="right" valign="top"><a id="a030baef1ea44b633803a86e9b9c73f41"></a>
-size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classlibmad_1_1_m_p3_decoder_m_a_d.html#a030baef1ea44b633803a86e9b9c73f41">write</a> (void *data, size_t len)</td></tr>
-<tr class="memdesc:a030baef1ea44b633803a86e9b9c73f41"><td class="mdescLeft">&#160;</td><td class="mdescRight">Makes the mp3 data available for decoding: however we recommend to provide the data via a callback or input stream. <br /></td></tr>
-<tr class="separator:a030baef1ea44b633803a86e9b9c73f41"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af9d61b9a05cd696bf61459fccdf22b36"><td class="memItemLeft" align="right" valign="top"><a id="af9d61b9a05cd696bf61459fccdf22b36"></a>
+size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classlibmad_1_1_m_p3_decoder_m_a_d.html#af9d61b9a05cd696bf61459fccdf22b36">write</a> (const void *in_ptr, size_t in_size)</td></tr>
+<tr class="memdesc:af9d61b9a05cd696bf61459fccdf22b36"><td class="mdescLeft">&#160;</td><td class="mdescRight">Makes the mp3 data available for decoding: however we recommend to provide the data via a callback or input stream. <br /></td></tr>
+<tr class="separator:af9d61b9a05cd696bf61459fccdf22b36"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5547d9d93ac93ba91798cf8bf4e6c4d2"><td class="memItemLeft" align="right" valign="top"><a id="a5547d9d93ac93ba91798cf8bf4e6c4d2"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classlibmad_1_1_m_p3_decoder_m_a_d.html#a5547d9d93ac93ba91798cf8bf4e6c4d2">operator bool</a> ()</td></tr>
 <tr class="memdesc:a5547d9d93ac93ba91798cf8bf4e6c4d2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns true as long as we are processing data. <br /></td></tr>
@@ -134,39 +124,195 @@ size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="cl
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
-<tr class="memitem:ad9ce1b8104952156bfa82cc7dde35f98"><td class="memItemLeft" align="right" valign="top"><a id="ad9ce1b8104952156bfa82cc7dde35f98"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>if</b> (len==0)</td></tr>
-<tr class="separator:ad9ce1b8104952156bfa82cc7dde35f98"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2540fb12e10cd68b8aef28d5323577f6"><td class="memItemLeft" align="right" valign="top"><a id="a2540fb12e10cd68b8aef28d5323577f6"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>mad_stream_buffer</b> (stream,(const uint8_t *) mad_buffer.data, mad_buffer.size)</td></tr>
-<tr class="separator:a2540fb12e10cd68b8aef28d5323577f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9a5ddf345a23557d6df2f79f32d566c0"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classlibmad_1_1_m_p3_decoder_m_a_d.html#a9a5ddf345a23557d6df2f79f32d566c0">findSyncWord</a> (int offset)</td></tr>
+<tr class="memdesc:a9a5ddf345a23557d6df2f79f32d566c0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Finds the MP3 synchronization word which demarks the start of a new segment.  <a href="classlibmad_1_1_m_p3_decoder_m_a_d.html#a9a5ddf345a23557d6df2f79f32d566c0">More...</a><br /></td></tr>
+<tr class="separator:a9a5ddf345a23557d6df2f79f32d566c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a037301ad34ce7d5b4e0c965432287a08"><td class="memItemLeft" align="right" valign="top"><a id="a037301ad34ce7d5b4e0c965432287a08"></a>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classlibmad_1_1_m_p3_decoder_m_a_d.html#a037301ad34ce7d5b4e0c965432287a08">decode</a> (<a class="el" href="structlibmad_1_1_range.html">Range</a> r)</td></tr>
+<tr class="memdesc:a037301ad34ce7d5b4e0c965432287a08"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decodes a frame. <br /></td></tr>
+<tr class="separator:a037301ad34ce7d5b4e0c965432287a08"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a37cd0151b8ae3ebe51c41020c17abc34"><td class="memItemLeft" align="right" valign="top"><a id="a37cd0151b8ae3ebe51c41020c17abc34"></a>
+size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classlibmad_1_1_m_p3_decoder_m_a_d.html#a37cd0151b8ae3ebe51c41020c17abc34">appendToBuffer</a> (const void *in_ptr, int in_size)</td></tr>
+<tr class="memdesc:a37cd0151b8ae3ebe51c41020c17abc34"><td class="mdescLeft">&#160;</td><td class="mdescRight">we add the data to the buffer until it is full <br /></td></tr>
+<tr class="separator:a37cd0151b8ae3ebe51c41020c17abc34"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9115a1b0f4861df5c7c584d1e1f9e266"><td class="memItemLeft" align="right" valign="top"><a id="a9115a1b0f4861df5c7c584d1e1f9e266"></a>
+size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classlibmad_1_1_m_p3_decoder_m_a_d.html#a9115a1b0f4861df5c7c584d1e1f9e266">writeFrame</a> (const void *in_ptr, size_t in_size)</td></tr>
+<tr class="memdesc:a9115a1b0f4861df5c7c584d1e1f9e266"><td class="mdescLeft">&#160;</td><td class="mdescRight">appends the data to the frame buffer and decodes <br /></td></tr>
+<tr class="separator:a9115a1b0f4861df5c7c584d1e1f9e266"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0ee400683533bc78c135b52d92862af0"><td class="memItemLeft" align="right" valign="top"><a id="a0ee400683533bc78c135b52d92862af0"></a>
+size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classlibmad_1_1_m_p3_decoder_m_a_d.html#a0ee400683533bc78c135b52d92862af0">maxFrameSize</a> ()</td></tr>
+<tr class="memdesc:a0ee400683533bc78c135b52d92862af0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determines the maximum frame (buffer) size. <br /></td></tr>
+<tr class="separator:a0ee400683533bc78c135b52d92862af0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3356677347615af2c44b5e27d35de56c"><td class="memItemLeft" align="right" valign="top"><a id="a3356677347615af2c44b5e27d35de56c"></a>
+<a class="el" href="structlibmad_1_1_range.html">Range</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classlibmad_1_1_m_p3_decoder_m_a_d.html#a3356677347615af2c44b5e27d35de56c">synchronizeFrame</a> ()</td></tr>
+<tr class="memdesc:a3356677347615af2c44b5e27d35de56c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Synchronizes a Frame. <br /></td></tr>
+<tr class="separator:a3356677347615af2c44b5e27d35de56c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab95d3bae7ec9fa23cb5cf3c2b08ebbe1"><td class="memItemLeft" align="right" valign="top"><a id="ab95d3bae7ec9fa23cb5cf3c2b08ebbe1"></a>
+<a class="el" href="structlibmad_1_1_range.html">Range</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classlibmad_1_1_m_p3_decoder_m_a_d.html#ab95d3bae7ec9fa23cb5cf3c2b08ebbe1">frameRange</a> ()</td></tr>
+<tr class="memdesc:ab95d3bae7ec9fa23cb5cf3c2b08ebbe1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determines the next start and end synch word in the buffer. <br /></td></tr>
+<tr class="separator:ab95d3bae7ec9fa23cb5cf3c2b08ebbe1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a27baf4ae34d6672a3d0567fb27e6cb94"><td class="memItemLeft" align="right" valign="top"><a id="a27baf4ae34d6672a3d0567fb27e6cb94"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classlibmad_1_1_m_p3_decoder_m_a_d.html#a27baf4ae34d6672a3d0567fb27e6cb94">advanceFrameBuffer</a> (int offset)</td></tr>
+<tr class="memdesc:a27baf4ae34d6672a3d0567fb27e6cb94"><td class="mdescLeft">&#160;</td><td class="mdescRight">Advances the frame buffer. <br /></td></tr>
+<tr class="separator:a27baf4ae34d6672a3d0567fb27e6cb94"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae58130703a7c0a9b4ec33cf58f41518a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classlibmad_1_1_m_p3_decoder_m_a_d.html#ae58130703a7c0a9b4ec33cf58f41518a">output</a> (void *data, struct mad_header const *header, struct mad_pcm *pcm)</td></tr>
+<tr class="memdesc:ae58130703a7c0a9b4ec33cf58f41518a"><td class="mdescLeft">&#160;</td><td class="mdescRight">output decoded data  <a href="classlibmad_1_1_m_p3_decoder_m_a_d.html#ae58130703a7c0a9b4ec33cf58f41518a">More...</a><br /></td></tr>
+<tr class="separator:ae58130703a7c0a9b4ec33cf58f41518a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-static-methods"></a>
 Static Protected Member Functions</h2></td></tr>
-<tr class="memitem:a19d43bcb675e8b8c7c1f97d682cde38a"><td class="memItemLeft" align="right" valign="top"><a id="a19d43bcb675e8b8c7c1f97d682cde38a"></a>
-static enum mad_flow&#160;</td><td class="memItemRight" valign="bottom"><b>input</b> (void *data, struct mad_stream *stream)</td></tr>
-<tr class="separator:a19d43bcb675e8b8c7c1f97d682cde38a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a109b874a854729b6c2e01872c5fc5951"><td class="memItemLeft" align="right" valign="top"><a id="a109b874a854729b6c2e01872c5fc5951"></a>
+static int16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classlibmad_1_1_m_p3_decoder_m_a_d.html#a109b874a854729b6c2e01872c5fc5951">scale</a> (mad_fixed_t sample)</td></tr>
+<tr class="memdesc:a109b874a854729b6c2e01872c5fc5951"><td class="mdescLeft">&#160;</td><td class="mdescRight">Scales the sample from internal MAD format to int16. <br /></td></tr>
+<tr class="separator:a109b874a854729b6c2e01872c5fc5951"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
-<tr class="memitem:a868515d8d70cd5dce22608418ba7ed44"><td class="memItemLeft" align="right" valign="top"><a id="a868515d8d70cd5dce22608418ba7ed44"></a>
-struct mad_decoder&#160;</td><td class="memItemRight" valign="bottom"><b>decoder</b></td></tr>
-<tr class="separator:a868515d8d70cd5dce22608418ba7ed44"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad2e77fbb1346acc41316b18529b237b8"><td class="memItemLeft" align="right" valign="top"><a id="ad2e77fbb1346acc41316b18529b237b8"></a>
-int&#160;</td><td class="memItemRight" valign="bottom"><b>len</b> = mad_buffer.size&gt;0</td></tr>
-<tr class="separator:ad2e77fbb1346acc41316b18529b237b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa3b23b4ad8c21d87846d1a9175184288"><td class="memItemLeft" align="right" valign="top"><a id="aa3b23b4ad8c21d87846d1a9175184288"></a>
-mad_buffer&#160;</td><td class="memItemRight" valign="bottom"><b>size</b> = 0</td></tr>
-<tr class="separator:aa3b23b4ad8c21d87846d1a9175184288"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aeb883efaec41f41c8aecd476580f28b1"><td class="memItemLeft" align="right" valign="top"><a id="aeb883efaec41f41c8aecd476580f28b1"></a>
-return&#160;</td><td class="memItemRight" valign="bottom"><b>MAD_FLOW_CONTINUE</b></td></tr>
-<tr class="separator:aeb883efaec41f41c8aecd476580f28b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a71f54ad08ab4817514b1b22532ba3932"><td class="memItemLeft" align="right" valign="top"><a id="a71f54ad08ab4817514b1b22532ba3932"></a>
+size_t&#160;</td><td class="memItemRight" valign="bottom"><b>max_buffer_size</b> = 1024</td></tr>
+<tr class="separator:a71f54ad08ab4817514b1b22532ba3932"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abc97e41ea8f4906044277b50be7ff446"><td class="memItemLeft" align="right" valign="top"><a id="abc97e41ea8f4906044277b50be7ff446"></a>
+size_t&#160;</td><td class="memItemRight" valign="bottom"><b>frame_counter</b> = 0</td></tr>
+<tr class="separator:abc97e41ea8f4906044277b50be7ff446"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a57cd28d3258116ea34a1b04170db4b09"><td class="memItemLeft" align="right" valign="top"><a id="a57cd28d3258116ea34a1b04170db4b09"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>active</b></td></tr>
+<tr class="separator:a57cd28d3258116ea34a1b04170db4b09"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a06838433e7abc9866dcd7fdc00018584"><td class="memItemLeft" align="right" valign="top"><a id="a06838433e7abc9866dcd7fdc00018584"></a>
+struct mad_stream&#160;</td><td class="memItemRight" valign="bottom"><b>stream</b></td></tr>
+<tr class="separator:a06838433e7abc9866dcd7fdc00018584"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a622167d315cd6b58b55764a3fa4d4cd0"><td class="memItemLeft" align="right" valign="top"><a id="a622167d315cd6b58b55764a3fa4d4cd0"></a>
+struct mad_frame&#160;</td><td class="memItemRight" valign="bottom"><b>frame</b></td></tr>
+<tr class="separator:a622167d315cd6b58b55764a3fa4d4cd0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acfeb787c9be38b7d5a0a0f284bb7fb57"><td class="memItemLeft" align="right" valign="top"><a id="acfeb787c9be38b7d5a0a0f284bb7fb57"></a>
+struct mad_synth&#160;</td><td class="memItemRight" valign="bottom"><b>synth</b></td></tr>
+<tr class="separator:acfeb787c9be38b7d5a0a0f284bb7fb57"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a51a27095f7b6c4d52262e9a0aadc91ca"><td class="memItemLeft" align="right" valign="top"><a id="a51a27095f7b6c4d52262e9a0aadc91ca"></a>
+<a class="el" href="structlibmad_1_1_mad_input_buffer.html">MadInputBuffer</a>&#160;</td><td class="memItemRight" valign="bottom"><b>buffer</b></td></tr>
+<tr class="separator:a51a27095f7b6c4d52262e9a0aadc91ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7d9b488c263e9bb7a7d46fa3fa5b1b81"><td class="memItemLeft" align="right" valign="top"><a id="a7d9b488c263e9bb7a7d46fa3fa5b1b81"></a>
+<a class="el" href="structlibmad_1_1_mad_audio_info.html">MadAudioInfo</a>&#160;</td><td class="memItemRight" valign="bottom"><b>mad_info</b></td></tr>
+<tr class="separator:a7d9b488c263e9bb7a7d46fa3fa5b1b81"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>A simple Arduino API for the libMAD MP3 decoder. The data is provided with the help of <a class="el" href="classlibmad_1_1_m_p3_decoder_m_a_d.html#ab7bcd4167fbd16566db26576a1afed5f" title="Makes the mp3 data available for decoding: however we recommend to provide the data via a callback or...">write()</a> calls. The decoded result is available either via a callback method or via an mad_mad_output_streamput_streamput stream. </p>
+<div class="textblock"><p>A simple Arduino API for the libMAD MP3 decoder. The data is provided with the help of <a class="el" href="classlibmad_1_1_m_p3_decoder_m_a_d.html#af9d61b9a05cd696bf61459fccdf22b36" title="Makes the mp3 data available for decoding: however we recommend to provide the data via a callback or...">write()</a> calls. The decoded result is available either via a callback method or via an mad_mad_output_streamput_streamput stream. </p>
 <dl class="section author"><dt>Author</dt><dd>Phil Schatzmann </dd></dl>
 <dl class="section copyright"><dt>Copyright</dt><dd>GPLv3 </dd></dl>
-</div><hr/>The documentation for this class was generated from the following file:<ul>
+</div><h2 class="groupheader">Member Function Documentation</h2>
+<a id="a9a5ddf345a23557d6df2f79f32d566c0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9a5ddf345a23557d6df2f79f32d566c0">&#9670;&nbsp;</a></span>findSyncWord()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int libmad::MP3DecoderMAD::findSyncWord </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>offset</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Finds the MP3 synchronization word which demarks the start of a new segment. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">offset</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>int </dd></dl>
+
+</div>
+</div>
+<a id="ae58130703a7c0a9b4ec33cf58f41518a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae58130703a7c0a9b4ec33cf58f41518a">&#9670;&nbsp;</a></span>output()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void libmad::MP3DecoderMAD::output </td>
+          <td>(</td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>data</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct mad_header const *&#160;</td>
+          <td class="paramname"><em>header</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct mad_pcm *&#160;</td>
+          <td class="paramname"><em>pcm</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>output decoded data </p>
+<p>notify abmad_output_stream changes</p>
+
+</div>
+</div>
+<a id="a36337ef4d1009576e0bf3bf271464582"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a36337ef4d1009576e0bf3bf271464582">&#9670;&nbsp;</a></span>setBufferSize()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void libmad::MP3DecoderMAD::setBufferSize </td>
+          <td>(</td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>size</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Set the maximum buffer size which is used for parsing the data. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">size</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<hr/>The documentation for this class was generated from the following file:<ul>
 <li>src/<a class="el" href="_m_p3_decoder_m_a_d_8h_source.html">MP3DecoderMAD.h</a></li>
 </ul>
 </div><!-- contents -->
