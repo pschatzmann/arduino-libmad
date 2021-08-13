@@ -20,4 +20,3 @@ target_include_directories(arduino_libmad PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src
 
 # build examples
 add_subdirectory( "${CMAKE_CURRENT_SOURCE_DIR}/examples/mp3_write")
-add_subdirectory( "${CMAKE_CURRENT_SOURCE_DIR}/examples/mp3_cb")

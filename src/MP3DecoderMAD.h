@@ -1,20 +1,18 @@
 #pragma once
 
-#include "mad_config.h"
 #include "libmad/mad.h"
 #include "mad_log.h"
 #include <stdint.h>
 
 namespace libmad {
 
+
 /**
- * @brief Basic Info abmad_output_stream the Audio Data
+ * @brief Basic Audio Information (number of hannels, sample rate)
+ * 
  * @author Phil Schatzmann
  * @copyright GPLv3
  */
-
-#define MAD_READ_DATA_MAX_SIZE 1024
-
 struct MadAudioInfo {
     MadAudioInfo() = default;
     MadAudioInfo(const MadAudioInfo&) = default;
@@ -29,56 +27,52 @@ struct MadAudioInfo {
     bool operator==(MadAudioInfo alt){
         return sample_rate==alt.sample_rate && channels == alt.channels && bits_per_sample == alt.bits_per_sample;
     }
+
     bool operator!=(MadAudioInfo alt){
         return !(*this == alt);
     }       
 };
 
+// Callback methods
+typedef void (*MP3DataCallback)(MadAudioInfo &info,short *pwm_buffer, size_t len);
+typedef void (*MP3InfoCallback)(MadAudioInfo &info);
+MP3DataCallback pwmCallback = nullptr;
+MP3InfoCallback infoCallback = nullptr;
+#ifdef ARDUINO
+Print *mad_output_stream = nullptr;
+#endif
+
+
 /**
  * @brief Individual chunk of encoded MP3 data which is submitted to the decoder
+ * 
  * @author Phil Schatzmann
  * @copyright GPLv3
  */
-struct MadInputData {
+struct MadInputBuffer {
     uint8_t* data=nullptr;
     size_t size=0;
     bool cleanup = false;
 
-    MadInputData() = default;
+    MadInputBuffer() = default;
 
-    MadInputData(void* data, size_t len){
+    MadInputBuffer(void* data, size_t len){
         this->data = (uint8_t*) data;
         this->size = len;    
     }
 
-    MadInputData(const void* data, size_t len){
+    MadInputBuffer(const void* data, size_t len){
         this->data = (uint8_t*)data;
         this->size = len;    
     }
-
 };
 
-/// Callbacks
-typedef void (*MP3DataCallback)(MadAudioInfo &info,short *pwm_buffer, size_t len);
-typedef void (*MP3InfoCallback)(MadAudioInfo &info);
-typedef MadInputData (*MP3MadInputDataCallback)();
 
-/// Global Data to be used by static callback methods
-MadInputData mad_buffer;
-MP3DataCallback pwmCallback = nullptr;
-MP3InfoCallback infoCallback = nullptr;
-MP3MadInputDataCallback inputCallback = nullptr;
-bool is_active = false;
-MadAudioInfo mad_info;
-
-#ifdef ARDUINO
-Stream *mad_input_stream = nullptr;
-Print *mad_output_stream = nullptr;
-#endif
 
 /**
  * @brief A simple Arduino API for the libMAD MP3 decoder. The data is provided with the help of write() calls.
  * The decoded result is available either via a callback method or via an mad_mad_output_streamput_streamput stream.
+ * 
  * @author Phil Schatzmann
  * @copyright GPLv3
  */
@@ -90,14 +84,26 @@ class MP3DecoderMAD  {
         }
 
         ~MP3DecoderMAD(){
-            if (mad_buffer.cleanup && mad_buffer.data != nullptr){
-                delete [] mad_buffer.data;
+            end();
+            if (buffer.data!=nullptr){
+                delete [] buffer.data;
+                buffer.data = nullptr;
             }
+
         }
 
         MP3DecoderMAD(MP3DataCallback dataCallback, MP3InfoCallback infoCB=nullptr){
             setDataCallback(dataCallback);
             setInfoCallback(infoCB);
+        }
+
+        /**
+         * @brief Set the maximum buffer size which is used for parsing the data
+         * 
+         * @param size 
+         */
+        void setBufferSize(size_t size){
+            max_buffer_size = size;
         }
 
 #ifdef ARDUINO
@@ -108,10 +114,6 @@ class MP3DecoderMAD  {
 
         void setOutput(Print &out){
             mad_output_stream = &out;
-        }
-
-        void setInput(Stream &input){
-            mad_input_stream = &input;
         }
 #endif
 
@@ -125,38 +127,32 @@ class MP3DecoderMAD  {
             infoCallback = cb;
         }
 
-        /// Defines the callback which provides input data
-        void setInputCallback(MP3MadInputDataCallback input){
-            inputCallback = input;
+        // mad low lever interface - start
+        void begin() {
+            if (buffer.data==nullptr){
+                buffer.data = new uint8_t[max_buffer_size];
+            } 
+            if (active){
+                end();
+            }
+            mad_stream_init(&stream);
+            mad_frame_init(&frame);
+            mad_synth_init(&synth);
+
+            next_frame=nullptr;
+            this_frame=nullptr;
+            active = true;
+            buffer.size = 0;
         }
 
-         /// Starts the processing
-        void begin(){
-            LOG(Debug, "begin");
-            is_active = true;
-            mad_decoder_init(&decoder, this,
-                    input, 0 /* header */, 0 /* filter */, output,
-                    error, 0 /* message */);
-
-            // if we got an input callback
-            if (inputCallback!=nullptr){
-                mad_decoder_run(&decoder, MAD_DECODER_MODE_SYNC);
-            }
-
-#ifdef ARDUINO
-            // if we got an input stream we start the decoding
-            if (mad_input_stream!=nullptr){
-                mad_decoder_run(&decoder, MAD_DECODER_MODE_SYNC);
-                is_active = true;
-            }
-#endif
-        }
-
-        /// Releases the reserved memory
+        // mad low lever interface - end
         void end(){
-            LOG(Debug, "end");
-            mad_decoder_finish(&decoder);
-            is_active = false;
+            if (active){
+                mad_synth_finish(&synth);
+                mad_frame_finish(&frame);
+                mad_stream_finish(&stream);
+                active = false;
+            }
         }
 
         /// Provides the last valid audio information
@@ -165,88 +161,112 @@ class MP3DecoderMAD  {
         }
 
         /// Makes the mp3 data available for decoding: however we recommend to provide the data via a callback or input stream
-        size_t write(const void *data, size_t len){
-            return write((void *)data, len);
-        }
-
-        /// Makes the mp3 data available for decoding: however we recommend to provide the data via a callback or input stream
-        size_t write(void *data, size_t len){
-            LOG(Debug, "write: %lu", len);
-
-            mad_buffer.data = (uint8_t*)data;
-            mad_buffer.size = len;
-            // start the decoder after we have some data
-            if (mad_decoder_run(&decoder, MAD_DECODER_MODE_SYNC)==0){
-                // when we steop the buffer has been consumed
-                mad_buffer.size = 0;
-            }
-            return len;
+        size_t write(const void *in_ptr, size_t in_size) {
+            size_t result = 0;
+            if (active){
+                LOG(Debug, "write %zu", in_size);
+                size_t start = 0;
+                uint8_t* ptr8 = (uint8_t* )in_ptr;
+                // we can not write more then the AAC_MAX_FRAME_SIZE 
+                size_t write_len = min(in_size, max_buffer_size);
+                while(start<in_size){
+                        // we have some space left in the buffer
+                    int written_len = writeBuffer(ptr8+start, write_len);
+                    start += written_len;
+                    LOG(Info,"-> Written %zu of %zu", start, in_size);
+                    write_len = min(in_size - start, max_buffer_size);
+    #ifdef ARDUINO                    
+                    yield();
+    #endif
+                }
+                result = start;
+            }    
+            return result;
         }
 
         /// Returns true as long as we are processing data
         operator bool(){
-            return is_active;
+            return active;
         }
 
     protected:
-        struct mad_decoder decoder;
-        /*
-        * This is the input callback. The purpose of this callback is to (re)fill
-        * the stream buffer which is to be decoded. We try to refill it 1) from the 
-        * callback, 2) from the arduino stream or 3) from the buffer
-        */
+        size_t max_buffer_size = 1024;
+        bool active;
+        struct mad_stream stream;
+        struct mad_frame frame;
+        struct mad_synth synth;
 
-        static enum mad_flow input(void *data, struct mad_stream *stream) {
-            LOG(Debug, "input");
-            MP3DecoderMAD *mad = (MP3DecoderMAD *) data;
+        uint8_t* next_frame=nullptr;
+        uint8_t* this_frame=nullptr;
 
-            if (inputCallback!=nullptr){
-                MadInputData input = inputCallback();
-                mad_stream_buffer(stream, (uint8_t*)input.data, input.size);
-                return MAD_FLOW_CONTINUE;
-            }
+        MadInputBuffer buffer;
+        MadAudioInfo mad_info;
 
-#ifdef ARDUINO
-            // We take the data from the input stream by filling the buffer
-            if (mad_input_stream!=nullptr){
-                // allocate buffer
-                if (mad_buffer.data==nullptr){
-                    mad_buffer.data = new uint8_t[MAD_READ_DATA_MAX_SIZE];
-                    mad_buffer.cleanup = true;
+        /**
+         * @brief Uses MAD low level interface to process a submitted buffer
+         * 
+         * @param data 
+         * @param len 
+         * @return size_t 
+         */
+        size_t writeBuffer(uint8_t *data, size_t len){
+            // keep unprocessed data in buffer
+            int start = 0;
+            if (this_frame!=nullptr){
+                int consumed = this_frame - buffer.data;
+                if (consumed<=0){
+                    consumed = next_frame - buffer.data;
                 }
-                // Make data available
-                int max_len = min(MAD_READ_DATA_MAX_SIZE, mad_input_stream->available());
-                int len_read = mad_input_stream->readBytes(mad_buffer.data, max_len);
-                mad_buffer.size = len_read;
-            }
-#endif            
 
-            // If buffer is empty we stop to give the system the chance to provide more data
-            int len = mad_buffer.size;
-            if (len==0) {
-                return MAD_FLOW_STOP;
+                assert(consumed<max_buffer_size);
+                assert(consumed>=0);
+
+                if (consumed>0){
+                    buffer.size -= consumed;
+                    start = buffer.size;
+                    memmove(buffer.data, buffer.data+consumed, buffer.size);
+                } 
             }
 
-            // provide data from buffer
-            mad_stream_buffer(stream, (const uint8_t*)mad_buffer.data, mad_buffer.size);
+            // append data to buffer
+            int write_len = min(len, max_buffer_size - buffer.size);
+            memmove(buffer.data+start, data, write_len);
+            buffer.size += write_len;
 
-            // mark data as consumed
-            mad_buffer.size = 0;
-            return MAD_FLOW_CONTINUE;
-        }
+            // submit it to MAD
+            mad_stream_buffer(&stream, buffer.data, buffer.size);
 
-        static signed int scale(mad_fixed_t sample) {
-        /* round */
-        sample += (1L << (MAD_F_FRACBITS - 16));
+            int rc = 0;
+            bool had_output = false;
+            while (rc == 0) {
+                this_frame = (uint8_t *) stream.this_frame;
+                next_frame = (uint8_t *) stream.next_frame;
 
-        /* clip */
-        if (sample >= MAD_F_ONE)
-            sample = MAD_F_ONE - 1;
-        else if (sample < -MAD_F_ONE)
-            sample = -MAD_F_ONE;
+                // decode
+                rc = mad_frame_decode(&frame, &stream);
+                if (rc!=0){
+                    // resynchronize and decode
+                    mad_stream_sync(&stream);
+                    rc = mad_frame_decode(&frame, &stream);
+                }
+                if (rc==0){
+                    mad_synth_frame(&synth, &frame);
+                    if (synth.pcm.length>0){
+                        output(this, &frame.header, &synth.pcm);
+                        had_output = true;
+                    }
+                }
+            }
 
-        /* quantize */
-        return sample >> (MAD_F_FRACBITS + 1 - 16);
+            if (write_len==0 && !had_output){
+                // request to resend data
+                write_len = 0;
+                // ingore current buffer
+                buffer.size = 0;
+                LOG(Warning, "data was ignored");
+            } 
+
+            return write_len;
         }
 
         /*
@@ -255,9 +275,8 @@ class MP3DecoderMAD  {
         * is to mad_output_streamput (or play) the decoded PCM audio.
         */
 
-        static enum mad_flow output(void *data, struct mad_header const *header, struct mad_pcm *pcm) {
+        void output(void *data, struct mad_header const *header, struct mad_pcm *pcm) {
             LOG(Debug, "output");
-            MP3DecoderMAD *mad = (MP3DecoderMAD *) data;
             unsigned int nchannels, nsamples;
             mad_fixed_t const *left_ch, *right_ch;
             MadAudioInfo act_info(*pcm);
@@ -292,25 +311,25 @@ class MP3DecoderMAD  {
                 mad_output_stream->write((uint8_t*)result, nchannels*nsamples*sizeof(int16_t));
             }
 #endif
-            return MAD_FLOW_CONTINUE;
         }
 
-        /*
-        * This is the error callback function. It is called whenever a decoding
-        * error occurs. The error is indicated by stream->error; the list of
-        * possible MAD_ERROR_* errors can be found in the mad.h (or stream.h)
-        * header file.
-        */
+        /**
+         * @brief 
+         * 
+         * @param sample 
+         * @return int16_t 
+         */
+        static int16_t scale(mad_fixed_t sample) {
+            /* round */
+            if(sample>=MAD_F_ONE)
+                return(SHRT_MAX);
+            if(sample<=-MAD_F_ONE)
+                return(-SHRT_MAX);
 
-        static enum mad_flow error(void *data, struct mad_stream *stream, struct mad_frame *frame) {
-            char msg[80];
-            sprintf(msg, "decoding error 0x%04x (%s)", stream->error, mad_stream_errorstr(stream));
-            LOG(Error, msg);
-
-            /* return MAD_FLOW_BREAK here to stop decoding (and propagate an error) */
-            return MAD_FLOW_CONTINUE;
+            /* Conversion. */
+            sample=sample>>(MAD_F_FRACBITS-15);
+            return((signed short)sample);
         }
-
 };
 
 }
