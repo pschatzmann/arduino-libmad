@@ -33,6 +33,18 @@ struct MadAudioInfo {
     }       
 };
 
+/**
+ * @brief Range with a start and an end
+ * @author Phil Schatzmann
+ * @copyright GPLv3
+ * 
+ */
+struct Range {
+    int start;
+    int end;
+};
+
+
 // Callback methods
 typedef void (*MP3DataCallback)(MadAudioInfo &info,short *pwm_buffer, size_t len);
 typedef void (*MP3InfoCallback)(MadAudioInfo &info);
@@ -66,7 +78,6 @@ struct MadInputBuffer {
         this->size = len;    
     }
 };
-
 
 
 /**
@@ -139,10 +150,9 @@ class MP3DecoderMAD  {
             mad_frame_init(&frame);
             mad_synth_init(&synth);
 
-            next_frame=nullptr;
-            this_frame=nullptr;
             active = true;
             buffer.size = 0;
+            frame_counter = 0;
         }
 
         // mad low lever interface - end
@@ -170,8 +180,8 @@ class MP3DecoderMAD  {
                 // we can not write more then the AAC_MAX_FRAME_SIZE 
                 size_t write_len = min(in_size, max_buffer_size);
                 while(start<in_size){
-                        // we have some space left in the buffer
-                    int written_len = writeBuffer(ptr8+start, write_len);
+                    // we have some space left in the buffer
+                    int written_len = writeFrame(ptr8+start, write_len);
                     start += written_len;
                     LOG(Info,"-> Written %zu of %zu", start, in_size);
                     write_len = min(in_size - start, max_buffer_size);
@@ -191,90 +201,142 @@ class MP3DecoderMAD  {
 
     protected:
         size_t max_buffer_size = 1024;
+        size_t frame_counter = 0;
         bool active;
         struct mad_stream stream;
         struct mad_frame frame;
         struct mad_synth synth;
 
-        uint8_t* next_frame=nullptr;
-        uint8_t* this_frame=nullptr;
-
         MadInputBuffer buffer;
         MadAudioInfo mad_info;
 
         /**
-         * @brief Uses MAD low level interface to process a submitted buffer
+         * @brief Finds the MP3 synchronization word which demarks the start of a new segment
          * 
-         * @param data 
-         * @param len 
-         * @return size_t 
+         * @param offset 
+         * @return int 
          */
-        size_t writeBuffer(uint8_t *data, size_t len){
-            // keep unprocessed data in buffer
-            int start = 0;
-            if (this_frame!=nullptr){
-                int consumed = this_frame - buffer.data;
-                if (consumed<=0){
-                    consumed = next_frame - buffer.data;
-                }
 
-                assert(consumed<max_buffer_size);
-                assert(consumed>=0);
-
-                if (consumed>0){
-                    buffer.size -= consumed;
-                    start = buffer.size;
-                    memmove(buffer.data, buffer.data+consumed, buffer.size);
-                } 
-            }
-
-            // append data to buffer
-            int write_len = min(len, max_buffer_size - buffer.size);
-            memmove(buffer.data+start, data, write_len);
-            buffer.size += write_len;
-
-            // submit it to MAD
-            mad_stream_buffer(&stream, buffer.data, buffer.size);
-
-            int rc = 0;
-            bool had_output = false;
-            while (rc == 0) {
-                this_frame = (uint8_t *) stream.this_frame;
-                next_frame = (uint8_t *) stream.next_frame;
-
-                // decode
-                rc = mad_frame_decode(&frame, &stream);
-                if (rc!=0){
-                    // resynchronize and decode
-                    mad_stream_sync(&stream);
-                    rc = mad_frame_decode(&frame, &stream);
-                }
-                if (rc==0){
-                    mad_synth_frame(&synth, &frame);
-                    if (synth.pcm.length>0){
-                        output(this, &frame.header, &synth.pcm);
-                        had_output = true;
-                    }
+        int findSyncWord(int offset) {
+            for (int j=offset;j<buffer.size-1;j++){
+                if ((buffer.data[j] == 0xff && (buffer.data[j+1] & 0xe0) == 0xe0)){
+                    return j;
                 }
             }
-
-            if (write_len==0 && !had_output){
-                // request to resend data
-                write_len = 0;
-                // ingore current buffer
-                buffer.size = 0;
-                LOG(Warning, "data was ignored");
-            } 
-
-            return write_len;
+            return -1;
         }
 
-        /*
-        * This is the mad_output_streamput callback function. It is called after each frame of
-        * MPEG audio data has been completely decoded. The purpose of this callback
-        * is to mad_output_streamput (or play) the decoded PCM audio.
-        */
 
+        /// Decodes a frame
+        virtual void decode(Range r) {
+            mad_stream_buffer(&stream, buffer.data+r.start, buffer.size-r.start);
+
+            int rc = mad_frame_decode(&frame, &stream);
+            if (rc==0){
+                mad_synth_frame(&synth, &frame);
+                if (synth.pcm.length>0){
+                    output(this, &frame.header, &synth.pcm);
+                }
+
+                int decoded = (stream.next_frame - buffer.data);
+                assert(decoded>0);
+                buffer.size -= decoded;
+                assert(buffer.size<=maxFrameSize());
+                memmove(buffer.data, buffer.data+r.start+decoded, buffer.size);
+
+            } else {
+                LOG(Warning,"-> decoding error");
+                int ignore = r.end;
+                buffer.size -= ignore;
+                assert(buffer.size<=maxFrameSize());
+                memmove(buffer.data, buffer.data+ignore, buffer.size);
+
+            }
+        }  
+
+        /// we add the data to the buffer until it is full
+        size_t appendToBuffer(const void *in_ptr, int in_size){
+            LOG(Info, "appendToBuffer: %d (at %p)", in_size, buffer.data);
+            int buffer_size_old = buffer.size;
+            int process_size = min((int)(maxFrameSize() - buffer.size), in_size);
+            memmove(buffer.data+buffer.size, in_ptr, process_size); 
+            buffer.size += process_size;
+            assert(buffer.size<=maxFrameSize());
+
+            LOG(Debug, "appendToBuffer %d + %d  -> %u", buffer_size_old,  process_size, buffer.size );
+            return process_size;
+        }
+
+        /// appends the data to the frame buffer and decodes 
+        size_t writeFrame(const void *in_ptr, size_t in_size){
+            LOG(Debug, "writeFrame %zu", in_size);
+            size_t result = 0;
+            // in the beginning we ingnore all data until we found the first synch word
+            result = appendToBuffer(in_ptr, in_size);
+            Range r = synchronizeFrame();
+            // Decode if we have a valid start and end synch word
+            if(r.start>=0 && r.end>r.start){
+                decode(r);
+            } 
+            yield();
+            frame_counter++;
+            return result;
+        }
+
+        /// Determines the maximum frame (buffer) size
+        size_t maxFrameSize(){
+            return max_buffer_size;
+        }
+
+        /// Synchronizes a Frame
+        Range synchronizeFrame() {
+            LOG(Debug, "synchronizeFrame");
+            Range range = frameRange();
+            if (range.start<0){
+                // there is no Synch in the buffer at all -> we can ignore all data
+                range.end = -1;
+                LOG(Debug, "-> no synch")
+                if (buffer.size==maxFrameSize()) {
+                    buffer.size = 0;
+                    LOG(Debug, "-> buffer cleared");
+                }
+            } else if (range.start>0) {
+                // make sure that buffer starts with a synch word
+                LOG(Debug, "-> moving to new start %d",range.start);
+                buffer.size -= range.start;
+                assert(buffer.size<=maxFrameSize());
+
+                memmove(buffer.data, buffer.data + range.start, buffer.size);
+                range.end -= range.start;
+                range.start = 0;
+                LOG(Debug, "-> we are at beginning of synch word");
+            } else if (range.start==0) {
+                LOG(Debug, "-> we are at beginning of synch word");
+                if (range.end<0 && buffer.size == maxFrameSize()){
+                    buffer.size = 0;
+                    LOG(Debug, "-> buffer cleared");
+                }
+            }
+            return range;
+        }
+
+        /// Determines the next start and end synch word in the buffer
+        Range frameRange(){
+            Range result;
+            result.start = findSyncWord(0);
+            result.end = findSyncWord(result.start+2);
+            LOG(Debug, "-> frameRange -> %d - %d", result.start, result.end);
+            return result;
+        }
+
+        /// Advances the frame buffer
+        void advanceFrameBuffer(int offset){
+            buffer.size -= offset;
+            assert(buffer.size<=maxFrameSize());
+            memmove(buffer.data, buffer.data+offset, buffer.size);
+        }
+
+        /// output decoded data
         void output(void *data, struct mad_header const *header, struct mad_pcm *pcm) {
             LOG(Debug, "output");
             unsigned int nchannels, nsamples;
@@ -313,12 +375,7 @@ class MP3DecoderMAD  {
 #endif
         }
 
-        /**
-         * @brief 
-         * 
-         * @param sample 
-         * @return int16_t 
-         */
+        /// Scales the sample from internal MAD format to int16
         static int16_t scale(mad_fixed_t sample) {
             /* round */
             if(sample>=MAD_F_ONE)
@@ -330,6 +387,7 @@ class MP3DecoderMAD  {
             sample=sample>>(MAD_F_FRACBITS-15);
             return((signed short)sample);
         }
+
 };
 
 }
