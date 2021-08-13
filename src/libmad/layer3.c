@@ -21,6 +21,7 @@
 #pragma GCC optimize ("O3")
 
 #include "config.h"
+#include "mad_pgmspace.h"
 
 #include "global.h"
 
@@ -136,46 +137,46 @@ unsigned char const nsfb_table[6][3][4] = {
  * derived from Table B.8 of ISO/IEC 11172-3
  */
 static
-unsigned char const sfb_48000_long[] = {
+unsigned char const sfb_48000_long[] PROGMEM = {
    4,  4,  4,  4,  4,  4,  6,  6,  6,   8,  10,
   12, 16, 18, 22, 28, 34, 40, 46, 54,  54, 192
 };
 
 static
-unsigned char const sfb_44100_long[] = {
+unsigned char const sfb_44100_long[] PROGMEM = {
    4,  4,  4,  4,  4,  4,  6,  6,  8,   8,  10,
   12, 16, 20, 24, 28, 34, 42, 50, 54,  76, 158
 };
 
 static
-unsigned char const sfb_32000_long[] = {
+unsigned char const sfb_32000_long[] PROGMEM = {
    4,  4,  4,  4,  4,  4,  6,  6,  8,  10,  12,
   16, 20, 24, 30, 38, 46, 56, 68, 84, 102,  26
 };
 
 static
-unsigned char const sfb_48000_short[] = {
+unsigned char const sfb_48000_short[] PROGMEM = {
    4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  6,
    6,  6,  6,  6,  6, 10, 10, 10, 12, 12, 12, 14, 14,
   14, 16, 16, 16, 20, 20, 20, 26, 26, 26, 66, 66, 66
 };
 
 static
-unsigned char const sfb_44100_short[] = {
+unsigned char const sfb_44100_short[] PROGMEM = {
    4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  6,
    6,  6,  8,  8,  8, 10, 10, 10, 12, 12, 12, 14, 14,
   14, 18, 18, 18, 22, 22, 22, 30, 30, 30, 56, 56, 56
 };
 
 static
-unsigned char const sfb_32000_short[] = {
+unsigned char const sfb_32000_short[] PROGMEM = {
    4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  6,
    6,  6,  8,  8,  8, 12, 12, 12, 16, 16, 16, 20, 20,
   20, 26, 26, 26, 34, 34, 34, 42, 42, 42, 12, 12, 12
 };
 
 static
-unsigned char const sfb_48000_mixed[] = {
+unsigned char const sfb_48000_mixed[] PROGMEM = {
   /* long */   4,  4,  4,  4,  4,  4,  6,  6,
   /* short */  4,  4,  4,  6,  6,  6,  6,  6,  6, 10,
               10, 10, 12, 12, 12, 14, 14, 14, 16, 16,
@@ -183,7 +184,7 @@ unsigned char const sfb_48000_mixed[] = {
 };
 
 static
-unsigned char const sfb_44100_mixed[] = {
+unsigned char const sfb_44100_mixed[] PROGMEM = {
   /* long */   4,  4,  4,  4,  4,  4,  6,  6,
   /* short */  4,  4,  4,  6,  6,  6,  8,  8,  8, 10,
               10, 10, 12, 12, 12, 14, 14, 14, 18, 18,
@@ -191,7 +192,7 @@ unsigned char const sfb_44100_mixed[] = {
 };
 
 static
-unsigned char const sfb_32000_mixed[] = {
+unsigned char const sfb_32000_mixed[] PROGMEM = {
   /* long */   4,  4,  4,  4,  4,  4,  6,  6,
   /* short */  4,  4,  4,  6,  6,  6,  8,  8,  8, 12,
               12, 12, 16, 16, 16, 20, 20, 20, 26, 26,
@@ -203,13 +204,13 @@ unsigned char const sfb_32000_mixed[] = {
  * derived from Table B.2 of ISO/IEC 13818-3
  */
 static
-unsigned char const sfb_24000_long[] = {
+unsigned char const sfb_24000_long[] PROGMEM = {
    6,  6,  6,  6,  6,  6,  8, 10, 12,  14,  16,
   18, 22, 26, 32, 38, 46, 54, 62, 70,  76,  36
 };
 
 static
-unsigned char const sfb_22050_long[] = {
+unsigned char const sfb_22050_long[] PROGMEM = {
    6,  6,  6,  6,  6,  6,  8, 10, 12,  14,  16,
   20, 24, 28, 32, 38, 46, 52, 60, 68,  58,  54
 };
@@ -217,28 +218,28 @@ unsigned char const sfb_22050_long[] = {
 # define sfb_16000_long  sfb_22050_long
 
 static
-unsigned char const sfb_24000_short[] = {
+unsigned char const sfb_24000_short[] PROGMEM = {
    4,  4,  4,  4,  4,  4,  4,  4,  4,  6,  6,  6,  8,
    8,  8, 10, 10, 10, 12, 12, 12, 14, 14, 14, 18, 18,
   18, 24, 24, 24, 32, 32, 32, 44, 44, 44, 12, 12, 12
 };
 
 static
-unsigned char const sfb_22050_short[] = {
+unsigned char const sfb_22050_short[] PROGMEM = {
    4,  4,  4,  4,  4,  4,  4,  4,  4,  6,  6,  6,  6,
    6,  6,  8,  8,  8, 10, 10, 10, 14, 14, 14, 18, 18,
   18, 26, 26, 26, 32, 32, 32, 42, 42, 42, 18, 18, 18
 };
 
 static
-unsigned char const sfb_16000_short[] = {
+unsigned char const sfb_16000_short[] PROGMEM = {
    4,  4,  4,  4,  4,  4,  4,  4,  4,  6,  6,  6,  8,
    8,  8, 10, 10, 10, 12, 12, 12, 14, 14, 14, 18, 18,
   18, 24, 24, 24, 30, 30, 30, 40, 40, 40, 18, 18, 18
 };
 
 static
-unsigned char const sfb_24000_mixed[] = {
+unsigned char const sfb_24000_mixed[] PROGMEM = {
   /* long */   6,  6,  6,  6,  6,  6,
   /* short */  6,  6,  6,  8,  8,  8, 10, 10, 10, 12,
               12, 12, 14, 14, 14, 18, 18, 18, 24, 24,
@@ -246,7 +247,7 @@ unsigned char const sfb_24000_mixed[] = {
 };
 
 static
-unsigned char const sfb_22050_mixed[] = {
+unsigned char const sfb_22050_mixed[] PROGMEM = {
   /* long */   6,  6,  6,  6,  6,  6,
   /* short */  6,  6,  6,  6,  6,  6,  8,  8,  8, 10,
               10, 10, 14, 14, 14, 18, 18, 18, 26, 26,
@@ -254,7 +255,7 @@ unsigned char const sfb_22050_mixed[] = {
 };
 
 static
-unsigned char const sfb_16000_mixed[] = {
+unsigned char const sfb_16000_mixed[] PROGMEM = {
   /* long */   6,  6,  6,  6,  6,  6,
   /* short */  6,  6,  6,  8,  8,  8, 10, 10, 10, 12,
               12, 12, 14, 14, 14, 18, 18, 18, 24, 24,
@@ -269,7 +270,7 @@ unsigned char const sfb_16000_mixed[] = {
 # define sfb_11025_long  sfb_12000_long
 
 static
-unsigned char const sfb_8000_long[] = {
+unsigned char const sfb_8000_long[] PROGMEM = {
   12, 12, 12, 12, 12, 12, 16, 20, 24,  28,  32,
   40, 48, 56, 64, 76, 90,  2,  2,  2,   2,   2
 };
@@ -278,7 +279,7 @@ unsigned char const sfb_8000_long[] = {
 # define sfb_11025_short  sfb_12000_short
 
 static
-unsigned char const sfb_8000_short[] = {
+unsigned char const sfb_8000_short[] PROGMEM = {
    8,  8,  8,  8,  8,  8,  8,  8,  8, 12, 12, 12, 16,
   16, 16, 20, 20, 20, 24, 24, 24, 28, 28, 28, 36, 36,
   36,  2,  2,  2,  2,  2,  2,  2,  2,  2, 26, 26, 26
@@ -290,7 +291,7 @@ unsigned char const sfb_8000_short[] = {
 /* the 8000 Hz short block scalefactor bands do not break after
    the first 36 frequency lines, so this is probably wrong */
 static
-unsigned char const sfb_8000_mixed[] = {
+unsigned char const sfb_8000_mixed[] PROGMEM = {
   /* long */  12, 12, 12,
   /* short */  4,  4,  4,  8,  8,  8, 12, 12, 12, 16, 16, 16,
               20, 20, 20, 24, 24, 24, 28, 28, 28, 36, 36, 36,
@@ -319,7 +320,7 @@ struct {
  * derived from Table B.6 of ISO/IEC 11172-3
  */
 static
-unsigned char const pretab[22] = {
+unsigned char const pretab[22] PROGMEM = {
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 3, 3, 3, 2, 0
 };
 
@@ -343,7 +344,7 @@ struct fixedfloat {
  * root_table[3 + x] = 2^(x/4)
  */
 static
-mad_fixed_t const root_table[7] = {
+mad_fixed_t const root_table[7] = PROGMEM {
   MAD_F(0x09837f05) /* 2^(-3/4) == 0.59460355750136 */,
   MAD_F(0x0b504f33) /* 2^(-2/4) == 0.70710678118655 */,
   MAD_F(0x0d744fcd) /* 2^(-1/4) == 0.84089641525371 */,
@@ -357,12 +358,12 @@ mad_fixed_t const root_table[7] = {
  * coefficients for aliasing reduction
  * derived from Table B.9 of ISO/IEC 11172-3
  *
- *  c[]  = { -0.6, -0.535, -0.33, -0.185, -0.095, -0.041, -0.0142, -0.0037 }
+ *  c[] PROGMEM  = { -0.6, -0.535, -0.33, -0.185, -0.095, -0.041, -0.0142, -0.0037 }
  * cs[i] =    1 / sqrt(1 + c[i]^2)
  * ca[i] = c[i] / sqrt(1 + c[i]^2)
  */
 static
-mad_fixed_t const cs[8] = {
+mad_fixed_t const cs[8] = PROGMEM {
   +MAD_F(0x0db84a81) /* +0.857492926 */, +MAD_F(0x0e1b9d7f) /* +0.881741997 */,
   +MAD_F(0x0f31adcf) /* +0.949628649 */, +MAD_F(0x0fbba815) /* +0.983314592 */,
   +MAD_F(0x0feda417) /* +0.995517816 */, +MAD_F(0x0ffc8fc8) /* +0.999160558 */,

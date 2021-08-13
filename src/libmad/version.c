@@ -20,14 +20,14 @@
  */
 
 #include "config.h"
-
+#include "mad_pgmspace.h"
 #include "global.h"
 
 #include "version.h"
 
-char const mad_version[]   = "MPEG Audio Decoder " MAD_VERSION;
-char const mad_copyright[] = "Copyright (C) " MAD_PUBLISHYEAR " " MAD_AUTHOR;
-char const mad_author[]    = MAD_AUTHOR " <" MAD_EMAIL ">";
+char const mad_version[] PROGMEM  = "MPEG Audio Decoder " MAD_VERSION;
+char const mad_copyright[] PROGMEM = "Copyright (C) " MAD_PUBLISHYEAR " " MAD_AUTHOR;
+char const mad_author[] PROGMEM  = MAD_AUTHOR " <" MAD_EMAIL ">";
 
 char const mad_build[] = ""
 # if defined(DEBUG)
