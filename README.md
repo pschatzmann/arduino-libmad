@@ -68,7 +68,7 @@ make
   
 ### Documentation
 
-The [Class Documentation can be found here](https://pschatzmann.github.io/arduino-libmad/html/annotated.html)
+The [Class Documentation can be found here](https://pschatzmann.github.io/arduino-libmad/html/classlibmad_1_1_m_p3_decoder_m_a_d.html)
 
 
 
