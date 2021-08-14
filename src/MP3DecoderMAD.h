@@ -8,7 +8,7 @@ namespace libmad {
 
 
 /**
- * @brief Basic Audio Information (number of hannels, sample rate)
+ * @brief Basic Audio Information (number of channels, sample rate)
  * 
  * @author Phil Schatzmann
  * @copyright GPLv3
@@ -82,7 +82,7 @@ struct MadInputBuffer {
 
 /**
  * @brief A simple Arduino API for the libMAD MP3 decoder. The data is provided with the help of write() calls.
- * The decoded result is available either via a callback method or via an mad_mad_output_streamput_streamput stream.
+ * The decoded result is available either via a callback method or via an Arduino stream.
  * 
  * @author Phil Schatzmann
  * @copyright GPLv3
