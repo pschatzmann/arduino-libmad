@@ -68,7 +68,8 @@ make
   
 ### Documentation
 
-The [Class Documentation can be found here](https://pschatzmann.github.io/arduino-libmad/html/classlibmad_1_1_m_p3_decoder_m_a_d.html)
+- The [Class Documentation can be found here](https://pschatzmann.github.io/arduino-libmad/html/classlibmad_1_1_m_p3_decoder_m_a_d.html). 
+- I also suggest that you have a look at [my related Blog](https://www.pschatzmann.ch/home/2021/08/13/audio-decoders-for-microcontrollers/)
 
 
 
