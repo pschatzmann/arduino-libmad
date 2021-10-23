@@ -202,7 +202,7 @@ class MP3DecoderMAD  {
     protected:
         size_t max_buffer_size = 1024;
         size_t frame_counter = 0;
-        bool active;
+        bool active = false;
         struct mad_stream stream;
         struct mad_frame frame;
         struct mad_synth synth;
