@@ -334,9 +334,13 @@ int mad_layer_II(struct mad_stream *stream, struct mad_frame *frame)
   struct mad_bitptr start;
   unsigned int index, sblimit, nbal, nch, bound, gr, ch, s, sb;
   unsigned char const *offsets;
+#if MAD_STACK_HACK 
+  static unsigned char allocation[2][32], scfsi[2][32], scalefactor[2][32][3];
+  static mad_fixed_t samples[3];
+#else
   unsigned char allocation[2][32], scfsi[2][32], scalefactor[2][32][3];
   mad_fixed_t samples[3];
-
+#endif
   nch = MAD_NCHANNELS(header);
 
   if (header->flags & MAD_FLAG_LSF_EXT)

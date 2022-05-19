@@ -3,9 +3,18 @@
 #include "libmad/mad.h"
 #include "mad_log.h"
 #include <stdint.h>
+#include <climits>
+#include <cassert>
 
 namespace libmad {
 
+#ifndef MAD_MAX_RESULT_BUFFER_SIZE 
+#define MAD_MAX_RESULT_BUFFER_SIZE 1024
+#endif
+
+#ifndef MAD_MAX_BUFFER_SIZE 
+#define MAD_MAX_BUFFER_SIZE 1024
+#endif
 
 /**
  * @brief Basic Audio Information (number of channels, sample rate)
@@ -100,6 +109,9 @@ class MP3DecoderMAD  {
                 delete [] buffer.data;
                 buffer.data = nullptr;
             }
+            if (p_result_buffer!=nullptr){
+                delete [] p_result_buffer;
+            } 
 
         }
 
@@ -115,6 +127,15 @@ class MP3DecoderMAD  {
          */
         void setBufferSize(size_t size){
             max_buffer_size = size;
+        }
+
+        /**
+         * @brief Set the Result Buffer Size in samples
+         * 
+         * @param size 
+         */
+        void setResultBufferSize(size_t size){
+            max_result_buffer_size = size;
         }
 
 #ifdef ARDUINO
@@ -143,6 +164,9 @@ class MP3DecoderMAD  {
             if (buffer.data==nullptr){
                 buffer.data = new uint8_t[max_buffer_size];
             } 
+            if (p_result_buffer==nullptr){
+                p_result_buffer = new int16_t[max_result_buffer_size];
+            }
             if (active){
                 end();
             }
@@ -200,7 +224,8 @@ class MP3DecoderMAD  {
         }
 
     protected:
-        size_t max_buffer_size = 1024;
+        size_t max_buffer_size = MAD_MAX_BUFFER_SIZE;
+        size_t max_result_buffer_size = MAD_MAX_RESULT_BUFFER_SIZE;
         size_t frame_counter = 0;
         bool active = false;
         struct mad_stream stream;
@@ -209,6 +234,7 @@ class MP3DecoderMAD  {
 
         MadInputBuffer buffer;
         MadAudioInfo mad_info;
+        int16_t *p_result_buffer = nullptr;
 
         /**
          * @brief Finds the MP3 synchronization word which demarks the start of a new segment
@@ -354,23 +380,42 @@ class MP3DecoderMAD  {
             // convert to int16_t
             nchannels = pcm->channels;
             nsamples  = pcm->length;
-            int16_t result[nsamples*nchannels];
+            
+            // Output the reuslut in batches of max_result_buffer_size samples
+            int total_open = nsamples*nchannels;
             int i = 0;
-            for (int j=0;j<nsamples;j++){
-                for (int ch = 0;ch<nchannels;ch++){
-                    result[i++] = scale(pcm->samples[ch][j]);
+            do {
+                i = 0;
+                for (int j=0;j<nsamples;j++){
+                    for (int ch = 0;ch<nchannels;ch++){
+                        // scale sample
+                        p_result_buffer[i++] = scale(pcm->samples[ch][j]);
+                        total_open--;
+                        if (i>=max_result_buffer_size){
+                            // output full buffer
+                            outputBuffer(act_info, p_result_buffer,i);
+                            i = 0;
+                        }
+                    }
                 }
-            }
+            } while(total_open>0);
 
+            // output last buffer part
+            if (i>0){
+                outputBuffer(act_info, p_result_buffer,i);
+            }
+        }
+        /// Writes an individual buffer with max max_result_buffer_size samples
+        void outputBuffer(MadAudioInfo &info, int16_t *result, int len ){
             // return result via callback
             if (pwmCallback!=nullptr){
-                pwmCallback(act_info, result, nchannels*nsamples);
+                pwmCallback(info, result, len);
             }
 
 #ifdef ARDUINO
             // return result via stream
             if (mad_output_stream!=nullptr){
-                mad_output_stream->write((uint8_t*)result, nchannels*nsamples*sizeof(int16_t));
+                mad_output_stream->write((uint8_t*)result, len*sizeof(int16_t));
             }
 #endif
         }

@@ -237,7 +237,11 @@ int decode_header(struct mad_header *header, struct mad_stream *stream)
 static
 int free_bitrate(struct mad_stream *stream, struct mad_header const *header)
 {
+#if MAD_STACK_HACK1 
+  static struct mad_bitptr keep_ptr;
+#else
   struct mad_bitptr keep_ptr;
+#endif
   unsigned long rate = 0;
   unsigned int pad_slot, slots_per_frame;
   unsigned char const *ptr = 0;
@@ -249,8 +253,13 @@ int free_bitrate(struct mad_stream *stream, struct mad_header const *header)
 		     (header->flags & MAD_FLAG_LSF_EXT)) ? 72 : 144;
 
   while (mad_stream_sync(stream) == 0) {
+#if MAD_STACK_HACK1 
+    static struct mad_stream peek_stream;
+    static struct mad_header peek_header;
+#else
     struct mad_stream peek_stream;
     struct mad_header peek_header;
+#endif
 
     peek_stream = *stream;
     peek_header = *header;

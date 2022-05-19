@@ -142,3 +142,9 @@
 #else
 #define FPM_DEFAULT
 #endif
+
+/// Move major data from the stack to the heap
+#define MAD_STACK_HACK 1
+
+/// Move additinal (small) data sizes from the stack to the heap - unnecessarily wasting heap space
+#define MAD_STACK_HACK1 0

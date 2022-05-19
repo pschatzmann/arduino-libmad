@@ -882,9 +882,14 @@ void III_exponents(struct channel const *channel,
 static
 mad_fixed_t III_requantize(unsigned int value, signed int exp)
 {
+#if MAD_STACK_HACK1 
+  static mad_fixed_t requantized;
+  static struct fixedfloat const *power;
+#else
   mad_fixed_t requantized;
-  signed int frac;
   struct fixedfloat const *power;
+#endif
+  signed int frac;
 
   frac = exp % 4;  /* assumes sign(frac) == sign(exp) */
   exp /= 4;
@@ -935,7 +940,12 @@ enum mad_error III_huffdecode(struct mad_bitptr *ptr, mad_fixed_t xr[576],
 			      unsigned char const *sfbwidth,
 			      unsigned int part2_length)
 {
-  signed int exponents[39], exp;
+#if MAD_STACK_HACK1 
+  static signed int exponents[39];
+#else
+  signed int exponents[39];
+#endif
+  signed int exp;
   signed int const *expptr;
   struct mad_bitptr peek;
   signed int bits_left, cachesz;
@@ -967,8 +977,11 @@ enum mad_error III_huffdecode(struct mad_bitptr *ptr, mad_fixed_t xr[576],
     struct hufftable const *entry;
     union huffpair const *table;
     unsigned int linbits, startbits, big_values, reqhits;
+#if MAD_STACK_HACK1 
+    static mad_fixed_t reqcache[16];
+#else
     mad_fixed_t reqcache[16];
-
+#endif
     sfbound = xrptr + *sfbwidth++;
     rcount  = channel->region0_count + 1;
 
@@ -1281,7 +1294,11 @@ static
 void III_reorder(mad_fixed_t xr[576], struct channel const *channel,
 		 unsigned char const sfbwidth[39])
 {
+#if MAD_STACK_HACK 
+  static mad_fixed_t tmp[32][3][6];
+#else
   mad_fixed_t tmp[32][3][6];
+#endif
   unsigned int sb, l, f, w, sbw[3], sw[3];
 
   /* this is probably wrong for 8000 Hz mixed blocks */
@@ -2376,7 +2393,12 @@ enum mad_error III_decode(struct mad_bitptr *ptr, struct mad_frame *frame,
   for (gr = 0; gr < ngr; ++gr) {
     struct granule *granule = &si->gr[gr];
     unsigned char const *sfbwidth[2];
+
+#if MAD_STACK_HACK 
+    static mad_fixed_t xr[2][576];
+#else
     mad_fixed_t xr[2][576];
+#endif
     unsigned int ch;
     enum mad_error error;
 
@@ -2417,10 +2439,15 @@ enum mad_error III_decode(struct mad_bitptr *ptr, struct mad_frame *frame,
 
     for (ch = 0; ch < nch; ++ch) {
       struct channel const *channel = &granule->ch[ch];
-      mad_fixed_t (*sample)[32] = &frame->sbsample[ch][18 * gr];
       unsigned int sb, l, i, sblimit;
+#if MAD_STACK_HACK1 
+      static mad_fixed_t (*sample)[32];
+      static mad_fixed_t output[36];
+      sample = &frame->sbsample[ch][18 * gr];
+#else
+      mad_fixed_t (*sample)[32] = &frame->sbsample[ch][18 * gr];
       mad_fixed_t output[36];
-
+#endif
       if (channel->block_type == 2) {
 	III_reorder(xr[ch], channel, sfbwidth[ch]);
 
@@ -2520,7 +2547,11 @@ int mad_layer_III(struct mad_stream *stream, struct mad_frame *frame)
   unsigned int si_len, data_bitlen, md_len;
   unsigned int frame_space, frame_used, frame_free;
   struct mad_bitptr ptr;
+#if MAD_STACK_HACK1 
+  static struct sideinfo si;
+#else  
   struct sideinfo si;
+#endif
   enum mad_error error;
   int result = 0;
 
