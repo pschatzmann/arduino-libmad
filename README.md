@@ -71,6 +71,7 @@ make
 - The [Class Documentation can be found here](https://pschatzmann.github.io/arduino-libmad/html/classlibmad_1_1_m_p3_decoder_m_a_d.html). 
 - I also suggest that you have a look at [my related Blog](https://www.pschatzmann.ch/home/2021/08/13/audio-decoders-for-microcontrollers/)
 
-
+I recommend to use this library together with my [Arduino Audio Tools](https://github.com/pschatzmann/arduino-audio-tools). 
+This is just one of many __codecs__ that I have collected so far: Further details can be found in the [Encoding and Decoding Wiki](https://github.com/pschatzmann/arduino-audio-tools/wiki/Encoding-and-Decoding-of-Audio) of the Audio Tools.
 
 
