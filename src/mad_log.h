@@ -11,20 +11,20 @@
 #pragma once
 
 // User Settings: Activate/Deactivate logging
-#ifndef HELIX_LOGGING_ACTIVE
-#define HELIX_LOGGING_ACTIVE false
+#ifndef MAD_LOGGING_ACTIVE
+#define MAD_LOGGING_ACTIVE false
 #endif
-#ifndef HELIX_LOG_LEVEL
-#define HELIX_LOG_LEVEL Warning
+#ifndef MAD_LOG_LEVEL
+#define MAD_LOG_LEVEL LogLevelMAD::Warning
 #endif
 
 // Logging Implementation
-#if HELIX_LOGGING_ACTIVE == true
+#if MAD_LOGGING_ACTIVE == true
 static char log_buffer_mad[512];
-enum LogLevel {Debug, Info, Warning, Error};
-static LogLevel minLogLevel = HELIX_LOG_LEVEL;
+enum class LogLevelMAD {Debug, Info, Warning, Error};
+static LogLevelMAD minLogLevelMAD = MAD_LOG_LEVEL;
 // We print the log based on the log level
-#define LOG(level,...) { if(level>=minLogLevel) { int l = snprintf(log_buffer_mad,512, __VA_ARGS__);  Serial.write(log_buffer_mad,l); Serial.println(); } }
+#define LOG(level,...) { if(level>=minLogLevelMAD) { int l = snprintf(log_buffer_mad,512, __VA_ARGS__);  Serial.write(log_buffer_mad,l); Serial.println(); } }
 #else
 // Remove all log statments from the code
 #define LOG(Debug, ...) 
