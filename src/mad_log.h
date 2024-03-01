@@ -20,11 +20,11 @@
 
 // Logging Implementation
 #if HELIX_LOGGING_ACTIVE == true
-static char log_buffer[512];
+static char log_buffer_mad[512];
 enum LogLevel {Debug, Info, Warning, Error};
 static LogLevel minLogLevel = HELIX_LOG_LEVEL;
 // We print the log based on the log level
-#define LOG(level,...) { if(level>=minLogLevel) { int l = snprintf(log_buffer,512, __VA_ARGS__);  Serial.write(log_buffer,l); Serial.println(); } }
+#define LOG(level,...) { if(level>=minLogLevel) { int l = snprintf(log_buffer_mad,512, __VA_ARGS__);  Serial.write(log_buffer_mad,l); Serial.println(); } }
 #else
 // Remove all log statments from the code
 #define LOG(Debug, ...) 
