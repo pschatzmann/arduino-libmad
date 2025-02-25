@@ -57,10 +57,10 @@ struct Range {
 // Callback methods
 typedef void (*MP3DataCallback)(MadAudioInfo &info,short *pwm_buffer, size_t len);
 typedef void (*MP3InfoCallback)(MadAudioInfo &info);
-MP3DataCallback pwmCallback = nullptr;
-MP3InfoCallback infoCallback = nullptr;
+static MP3DataCallback pwmCallback = nullptr;
+static MP3InfoCallback infoCallback = nullptr;
 #ifdef ARDUINO
-Print *mad_output_stream = nullptr;
+static Print *mad_output_stream = nullptr;
 #endif
 
 
