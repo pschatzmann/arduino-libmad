@@ -57,7 +57,7 @@ struct Range {
 // Callback methods
 typedef void (*MP3DataCallback)(MadAudioInfo &info,short *pwm_buffer, size_t len);
 typedef void (*MP3InfoCallback)(MadAudioInfo &info);
-static MP3DataCallback pwmCallback = nullptr;
+static MP3DataCallback pcmCallback = nullptr;
 static MP3InfoCallback infoCallback = nullptr;
 #ifdef ARDUINO
 static Print *mad_output_stream = nullptr;
@@ -151,7 +151,7 @@ class MP3DecoderMAD  {
 
         /// Defines the callback which receives the decoded data
         void setDataCallback(MP3DataCallback cb){
-            pwmCallback = cb;
+            pcmCallback = cb;
         }
 
         /// Defines the callback which receives the Info changes
@@ -408,8 +408,8 @@ class MP3DecoderMAD  {
         /// Writes an individual buffer with max max_result_buffer_size samples
         void outputBuffer(MadAudioInfo &info, int16_t *result, int len ){
             // return result via callback
-            if (pwmCallback!=nullptr){
-                pwmCallback(info, result, len);
+            if (pcmCallback!=nullptr){
+                pcmCallback(info, result, len);
             }
 
 #ifdef ARDUINO
