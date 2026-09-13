@@ -1,5 +1,8 @@
 # A MP3 Decoder using libmad
 
+[![Arduino Library](https://img.shields.io/badge/Arduino-Library-blue.svg)](https://www.arduino.cc/reference/en/libraries/)
+[![IDF Component](https://img.shields.io/badge/IDF-Component-blue.svg)](https://github.com/pschatzmann/arduino-libmad)
+
 [MAD from Underbit](https://www.underbit.com/products/mad/) is a high-quality MPEG audio decoder. It currently supports MPEG-1 and the MPEG-2 extension to lower sampling frequencies, as well as the de facto MPEG 2.5 format. All three audio layers — Layer I, Layer II, and Layer III (i.e. MP3) — are fully implemented. MP3 is a compressed audio file formats based on PCM. A 2.6 MB wav file can be compressed down to 476 kB MP3.
 
 I am providing the [MAD MP3 decoder](hhttps://www.underbit.com/products/mad/) as a __Arduino Library__ with a __simple Arduino Style API__. 

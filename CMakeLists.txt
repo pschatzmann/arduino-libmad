@@ -1,5 +1,16 @@
 cmake_minimum_required(VERSION 3.16)
 
+if (DEFINED ESP_PLATFORM)
+  # idf component
+  idf_component_register(
+      SRC_DIRS src src/libmad
+      INCLUDE_DIRS src src/libmad
+  )
+
+  target_compile_options(${COMPONENT_LIB} PUBLIC -Wno-error -DUSE_DEFAULT_STDLIB)
+
+else()
+
 # set the project name
 project(arduino_libmad)
 
@@ -23,4 +34,6 @@ target_include_directories(arduino_libmad PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src
 # build examples
 if(BUILD_TESTS)
     add_subdirectory( "${CMAKE_CURRENT_SOURCE_DIR}/examples/mp3_write")
+endif()
+
 endif()
